@@ -9,4 +9,8 @@ export const dateTimeFormat = {
   api: 'YYYY-MM-DDTHH:mm:ssZ'
 };
 
+export const global = {
+  notifKey: 'GLOBAL_NOTIF'
+};
+
 export default {};
