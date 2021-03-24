@@ -1,0 +1,28 @@
+{
+  "parser": "babel-eslint",
+  "extends": [
+    "semistandard",
+    "plugin:react/recommended"
+  ],
+  "env": {
+    "browser": true,
+    "node": true,
+    "jest": true,
+  },
+  "rules": {
+    "semi": ["error", "always"],
+    "eol-last": "off",
+    "import/no-webpack-loader-syntax": "off",
+    "react/prop-types": [
+      1, 
+      { 
+        "skipUndeclared": true
+      }
+    ]
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}
