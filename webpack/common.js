@@ -99,6 +99,7 @@ exports.resolve = {
     '@config': path.resolve(workingDir, 'src/config/'),
     '@services': path.resolve(workingDir, 'src/services/'),
     '@components': path.resolve(workingDir, 'src/components/'),
-    '@containers': path.resolve(workingDir, 'src/containers/')
+    '@containers': path.resolve(workingDir, 'src/containers/'),
+    '@assets': path.resolve(workingDir, 'src/assets/')
   }
 }
