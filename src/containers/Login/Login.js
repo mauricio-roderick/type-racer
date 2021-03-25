@@ -7,28 +7,11 @@ import classes from './Login.scss';
 import resource from '@config/resource';
 import { handleApiError } from '@helpers/collection';
 import platormApiSvc from '@services/platform-api/';
+import { connect as connectToApp } from '@providers/app';
 import Layout from '@containers/Layout/Layout';
 // import appRoutes from '@config/app-routes';
 
-export class Login extends PureComponent {
-  constructor (props) {
-    super(props);
-    this.state = {};
-  }
-
-  onSubmitHandler = async () => {
-  }
-
-  render () {
-    return (
-      <div className="user-login">
-        Login
-      </div>
-    );
-  }
-}
-
-class LoginForm extends React.Component {
+class LoginForm extends PureComponent {
   handleSubmit = e => {
     e.preventDefault();
     this.props.form.validateFields(async (err, { username, password }) => {
@@ -36,12 +19,14 @@ class LoginForm extends React.Component {
       }
 
       try {
-        const { data } = await platormApiSvc.post(resource.auth + '/token', {
-          username,
-          password
+        const { data } = await platormApiSvc.post(resource.auth + '/token', {}, {
+          auth: {
+            username,
+            password
+          }
         });
 
-        this.props.authCompelete(data);
+        this.props.authCompelete(data.accessToken);
       } catch (e) {
         handleApiError(e, () => {
           message.error('Incorrect username or password.');
@@ -89,6 +74,13 @@ class LoginForm extends React.Component {
 
 const WrappedLoginForm = Form.create({ name: 'normal_login' })(LoginForm);
 
+const appState = state => {
+  return state;
+};
+const appMethods = ({ authCompelete }) => {
+  return { authCompelete };
+};
 export default _flow([
-  withRouter
+  withRouter,
+  connectToApp(appState, appMethods)
 ])(WrappedLoginForm);
