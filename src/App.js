@@ -1,11 +1,14 @@
 import React, { Suspense, Component } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
-import { Icon } from 'antd';
+import { Icon, message } from 'antd';
 import classnames from 'classnames';
+import _pick from 'lodash.pick';
+import jwtDecode from 'jwt-decode';
 
-import ComponentLoader from '@components/shared/ComponentLoader/ComponentLoader';
-// import '@assets/styles/index.scss';
+import '@assets/styles/index.scss';
 import appRoutes from '@config/app-routes';
+import { AppContext } from '@providers/app';
+import ComponentLoader from '@components/shared/ComponentLoader/ComponentLoader';
 
 const PreLoader = () => (
   <div className="root-preloader">
@@ -23,9 +26,24 @@ const Login = ComponentLoader({
 });
 
 class App extends Component {
-  state = {
-    isLoggedIn: false,
-    user: {}
+  constructor (props) {
+    super(props);
+    this.contextMethods = _pick(this, [
+      'authCompelete'
+    ]);
+    this.state = {
+      isLoggedIn: false,
+      user: {}
+    };
+  }
+
+  authCompelete = (token) => {
+    try {
+      const user = jwtDecode(token);
+      this.setState({ user });
+    } catch (e) {
+      message.error('Something went wrong. Please try again.');
+    }
   }
 
   componentDidMount () {
@@ -44,14 +62,6 @@ class App extends Component {
     });
   }
 
-  componentDidUpdate (prevProps) {
-    // const { isLoggedIn } = this.props.user;
-
-    // if (isLoggedIn && isLoggedIn !== prevProps.user.isLoggedIn) {
-    //   this.preload();
-    // }
-  }
-
   render () {
     const { isLoggedIn, user } = this.state;
 
@@ -64,14 +74,19 @@ class App extends Component {
     );
 
     return (
-      <Suspense fallback={<PreLoader />}>
-        <Switch>
-          <Route path="/" exact >
-            { isLoggedIn ? homePage : <Redirect to={appRoutes.login} /> }
-          </Route>
-          <Route path={appRoutes.login} component={Login} />
-        </Switch>
-      </Suspense>
+      <AppContext.Provider value={{
+        method: this.contextMethods,
+        state: this.state
+      }}>
+        <Suspense fallback={<PreLoader />}>
+          <Switch>
+            <Route path="/" exact>
+              { isLoggedIn ? homePage : <Redirect to={appRoutes.login} /> }
+            </Route>
+            <Route path={appRoutes.login} component={Login} />
+          </Switch>
+        </Suspense>
+      </AppContext.Provider>
     );
   }
 }
