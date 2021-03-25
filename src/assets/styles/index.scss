@@ -1,0 +1,11 @@
+:global {
+  // bootstrap utilities
+  @import '@node_modules/bootstrap/scss/_functions';
+  @import '@node_modules/bootstrap/scss/_variables';
+  @import '@node_modules/bootstrap/scss/_mixins';
+  @import '@node_modules/bootstrap/scss/_utilities';
+
+  #root {
+    height: 100%;
+  }
+}
