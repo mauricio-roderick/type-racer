@@ -1,5 +1,5 @@
-import React, { Suspense, Component } from 'react'
-import { Route, Switch, Redirect } from 'react-router-dom'
+import React, { Suspense, PureComponent } from 'react'
+import { Redirect, Route, Switch } from 'react-router-dom'
 import { Icon, message } from 'antd'
 import classnames from 'classnames'
 import _pick from 'lodash.pick'
@@ -9,6 +9,7 @@ import '@assets/styles/index.scss'
 import appRoutes from '@config/app-routes'
 import { AppContext } from '@providers/app'
 import ComponentLoader from '@components/shared/ComponentLoader/ComponentLoader'
+import SecureRoute from '@containers/SecureRoute/SecureRoute'
 
 const PreLoader = () => (
   <div className="root-preloader">
@@ -24,15 +25,25 @@ const PreLoader = () => (
 const Login = ComponentLoader({
   loader: () => import('@containers/Login/Login')
 })
+const Logout = ComponentLoader({
+  loader: () => import('@containers/Logout/Logout')
+})
+const Home = ComponentLoader({
+  loader: () => import('@containers/Home/Home')
+})
+const Page404 = ComponentLoader({
+  loader: () => import('@containers/Page404/Page404')
+})
 
-class App extends Component {
+class App extends PureComponent {
   constructor (props) {
     super(props)
     this.contextMethods = _pick(this, [
-      'authCompelete'
+      'authCompelete',
+      'logout'
     ])
     this.state = {
-      isLoggedIn: false,
+      isAuthenticated: false,
       user: {}
     }
   }
@@ -40,38 +51,46 @@ class App extends Component {
   authCompelete = (token) => {
     try {
       const user = jwtDecode(token)
-      this.setState({ user })
+      localStorage.setItem('accessToken', token)
+      this.setState({
+        user,
+        isAuthenticated: true
+      })
+      message.destroy()
     } catch (e) {
       message.error('Something went wrong. Please try again.')
     }
   }
 
+  logout = () => {
+    this.setState({
+      user: {},
+      isAuthenticated: false
+    })
+  }
+
   componentDidMount () {
-    if (this.state.isLoggedIn) {
+    if (this.state.isAuthenticated) {
       this.preload()
     }
 
     window.addEventListener('storage', ({ key, newValue }) => {
       if (key === 'accessToken') {
         if (!newValue) {
-          window.location.href = '/login'
+          window.location.href = appRoutes.login
         } else if (window.location.pathname === appRoutes.login) {
-          window.location.href = '/'
+          window.location.href = appRoutes.home
         }
       }
     })
   }
 
   render () {
-    const { isLoggedIn, user } = this.state
+    const { isAuthenticated, user } = this.state
 
-    if (isLoggedIn && !user.id) {
+    if (isAuthenticated && !user._id) {
       return <PreLoader />
     }
-
-    const homePage = (
-      <div className="text-center">Temporary Home Page</div>
-    )
 
     return (
       <AppContext.Provider value={{
@@ -80,10 +99,13 @@ class App extends Component {
       }}>
         <Suspense fallback={<PreLoader />}>
           <Switch>
-            <Route path="/" exact>
-              { isLoggedIn ? homePage : <Redirect to={appRoutes.login} /> }
+            <Route path={appRoutes.login}>
+              { isAuthenticated ? <Redirect to={appRoutes.home} /> : <Login /> }
             </Route>
-            <Route path={appRoutes.login} component={Login} />
+            <Route path={appRoutes.pageNotFound} component={Page404} />
+            <Route exact path={appRoutes.logout} component={Logout} />
+            <SecureRoute exact path={appRoutes.home} component={Home} />
+            <Redirect to={appRoutes.pageNotFound} />
           </Switch>
         </Suspense>
       </AppContext.Provider>
