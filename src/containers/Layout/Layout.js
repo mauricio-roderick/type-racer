@@ -1,12 +1,28 @@
 import React, { PureComponent } from 'react'
+import { Link, withRouter } from 'react-router-dom'
 import { Layout, Menu } from 'antd'
+import _flow from 'lodash.flow'
+import appRoutes from '@config/app-routes'
+
 import classes from './Layout.scss'
+import { connect as connectToApp } from '@providers/app'
 
 const { Header, Content, Footer } = Layout
 
 class PageLayout extends PureComponent {
   render () {
-    const { children } = this.props
+    const { children, isAuthenticated } = this.props
+    const navItems = isAuthenticated ? [{
+      link: appRoutes.home,
+      label: 'Home'
+    }, {
+      link: appRoutes.logout,
+      label: 'Logout'
+    }] : [{
+      link: appRoutes.login,
+      label: 'Login'
+    }]
+
     return (
       <Layout className={classes.layout}>
         <Header>
@@ -16,11 +32,14 @@ class PageLayout extends PureComponent {
             mode="horizontal"
             className={classes.menu}
           >
-            <Menu.Item key="1">Login</Menu.Item>
-            <Menu.Item key="2">Play as Guest</Menu.Item>
+            {navItems.map((nav, i) => (
+              <Menu.Item key={i}>
+                <Link to={nav.link}>{nav.label}</Link>
+              </Menu.Item>
+            ))}
           </Menu>
         </Header>
-        <Content style={{ padding: '0 50px' }}>
+        <Content className={classes.content}>
           {children}
         </Content>
         <Footer className="text-center">TypeRacer</Footer>
@@ -29,4 +48,13 @@ class PageLayout extends PureComponent {
   }
 }
 
-export default PageLayout
+const stateToProps = ({ isAuthenticated, user }) => {
+  return { isAuthenticated, user }
+}
+const methodToProps = ({ logout }) => {
+  return { logout }
+}
+export default _flow([
+  withRouter,
+  connectToApp(stateToProps, methodToProps)
+])(PageLayout)
