@@ -1,12 +1,12 @@
-import React, { PureComponent } from 'react';
-import { Layout, Menu } from 'antd';
-import classes from './Layout.scss';
+import React, { PureComponent } from 'react'
+import { Layout, Menu } from 'antd'
+import classes from './Layout.scss'
 
-const { Header, Content, Footer } = Layout;
+const { Header, Content, Footer } = Layout
 
 class PageLayout extends PureComponent {
   render () {
-    const { children } = this.props;
+    const { children } = this.props
     return (
       <Layout className={classes.layout}>
         <Header>
@@ -25,8 +25,8 @@ class PageLayout extends PureComponent {
         </Content>
         <Footer className="text-center">TypeRacer</Footer>
       </Layout>
-    );
+    )
   }
 }
 
-export default PageLayout;
+export default PageLayout

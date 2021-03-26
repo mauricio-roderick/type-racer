@@ -1,16 +1,15 @@
 {
   "parser": "babel-eslint",
   "extends": [
-    "semistandard",
+    "standard",
     "plugin:react/recommended"
   ],
   "env": {
     "browser": true,
     "node": true,
-    "jest": true,
+    "jest": true
   },
   "rules": {
-    "semi": ["error", "always"],
     "eol-last": "off",
     "import/no-webpack-loader-syntax": "off",
     "react/prop-types": [

@@ -1,5 +1,5 @@
 const resource = {
   auth: '/oauth'
-};
+}
 
-export default resource;
+export default resource
