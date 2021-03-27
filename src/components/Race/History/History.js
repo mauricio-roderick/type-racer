@@ -3,15 +3,13 @@ import { Table, Typography, message } from 'antd'
 import { withRouter } from 'react-router-dom'
 import { dateTimeFormat } from '@config/collection'
 import querySting from 'query-string'
-import _flow from 'lodash.flow'
 import moment from 'moment'
 
 import { LOADING, IDLE } from '@config/constant'
-import { connect as connectToApp } from '@providers/app'
 import resource from '@config/resource'
 import platormApiSvc from '@services/platform-api/'
 
-class RaceHistory extends PureComponent {
+export class RaceHistory extends PureComponent {
   state = {
     raceHistory: []
   }
@@ -36,7 +34,7 @@ class RaceHistory extends PureComponent {
       fetchHistoryStatus: IDLE
     }
     try {
-      const { data } = await platormApiSvc.get(resource.race, {
+      const { data } = await platormApiSvc.get(resource.raceHistory, {
         params: { page }
       })
       const { totalRecords } = data.meta
@@ -44,7 +42,7 @@ class RaceHistory extends PureComponent {
       stateUpdate.raceHistory = data.raceHistory
       stateUpdate.totalRaceHistory = totalRecords
     } catch (e) {
-      message.warning('Failed to save your race.')
+      message.error('Failed to retrieve race history.')
     }
 
     this.setState(stateUpdate)
@@ -99,10 +97,4 @@ class RaceHistory extends PureComponent {
   }
 }
 
-const appState = ({ user }) => {
-  return { user }
-}
-export default _flow([
-  withRouter,
-  connectToApp(appState)
-])(RaceHistory)
+export default withRouter(RaceHistory)
