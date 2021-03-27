@@ -1,7 +1,6 @@
 .raceBox {
   max-width: 100%;
   width: 800px;
-  text-align: center;
   margin: 0 auto;
   padding: 20px;
 }
@@ -18,5 +17,19 @@
 .currentWord {
   text-decoration: underline;
 }
-.displayMode1 {
+.ticker {
+  font-size: 20px;
+  font-weight: bold;
+
+  [class*="anticon"]{
+    font-size: 24px;
+    vertical-align: -5px;
+  }
+  .time {
+    color: #e1813c;
+  }
+  .meter {
+    color: #42577e;
+    text-align: right;
+  }
 }
