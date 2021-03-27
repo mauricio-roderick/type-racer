@@ -1,14 +1,15 @@
 import React, { PureComponent } from 'react'
-import { Row, Col, Input, Button, Alert, message, notification } from 'antd'
-import { ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons'
+import { Row, Col, Input, Button, Alert, Table, message, notification } from 'antd'
+import { ClockCircleOutlined, DashboardOutlined, Loading3QuartersOutlined } from '@ant-design/icons'
 import { withRouter } from 'react-router-dom'
 import _flow from 'lodash.flow'
 import classnames from 'classnames'
+import moment from 'moment'
 
 import classes from './Race.scss'
 import resource from '@config/resource'
 import { LOADING, IDLE, raceStatus as raceStatusConf } from '@config/constant'
-import { raceTimeLimit, raceCountdown } from '@config/collection'
+import { raceTimeLimit, raceCountdown, dateTimeFormat } from '@config/collection'
 import platormApiSvc from '@services/platform-api/'
 import { connect as connectToApp } from '@providers/app'
 import Layout from '@containers/Layout/Layout'
@@ -28,6 +29,7 @@ export class Race extends PureComponent {
       userInput: '',
       wordToMatch: '',
       words: [],
+      raceHistory: [],
       wordsCompleted: [],
       matchedChars: [],
       countDownTimer: 0,
@@ -37,10 +39,26 @@ export class Race extends PureComponent {
   }
 
   componentDidMount () {
+    this.getRaceHistory()
   }
 
   async getuserInput () {
     return stringValue
+  }
+
+  async getRaceHistory () {
+    this.setState({ fetchHistoryStatus: LOADING })
+    const stateUpdate = {
+      fetchHistoryStatus: IDLE
+    }
+    try {
+      const { data } = await platormApiSvc.get(resource.race)
+      stateUpdate.raceHistory = data.raceHistory
+    } catch (e) {
+      message.warning('Failed to save your race.')
+    }
+
+    this.setState(stateUpdate)
   }
 
   initRace = async () => {
@@ -230,9 +248,33 @@ export class Race extends PureComponent {
     )
   }
 
+  renderRaceHistory () {
+    const { fetchHistoryStatus, raceHistory } = this.state
+    const columns = [{
+      title: 'wpm',
+      dataIndex: 'wpm'
+    }, {
+      title: 'Date',
+      dataIndex: 'timestamp',
+      render: timestamp => moment(timestamp).format(dateTimeFormat.client)
+    }]
+    return fetchHistoryStatus !== LOADING ? (
+      <Table columns={columns} dataSource={raceHistory} />
+    ) : <Loading3QuartersOutlined className={classes.raceHistoryLoader} spin />
+  }
+
   render () {
     const { IDLE, ONGOING, END } = raceStatusConf
-    const { wordToMatch = '', words, wordsCompleted, countDownTimer, userInput, remainingTime, raceStatus, matchedChars } = this.state
+    const {
+      wordToMatch = '',
+      words,
+      wordsCompleted,
+      countDownTimer,
+      userInput,
+      remainingTime,
+      raceStatus,
+      matchedChars
+    } = this.state
     const hasTypo = matchedChars.length < userInput.length
     const { wpm } = this.getRaceStats()
     let alert = null
@@ -310,6 +352,7 @@ export class Race extends PureComponent {
             </div>
           </Col>
           <Col xl={12} lg={24}>
+            {this.renderRaceHistory()}
           </Col>
         </Row>
       </Layout>
@@ -322,7 +365,7 @@ Race.defaultProps = {
   raceCountdown: raceCountdown
 }
 
-const appState = ({ isAuthenticated, user }) => {
+const appState = ({ user }) => {
   return { user }
 }
 export default _flow([

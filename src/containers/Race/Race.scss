@@ -33,3 +33,19 @@
     text-align: right;
   }
 }
+.textBox {
+  font-size: 20px;
+  padding: 3px;
+
+  &:focus {
+    border-width: 2px !important;
+  }
+  &.hasTypo {
+    border-color: #cb324c;
+    background: #c49b9b;
+  }
+}
+.raceHistoryLoader {
+  display: block;
+  font-size: 30px;
+}
