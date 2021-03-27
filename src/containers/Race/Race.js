@@ -1,32 +1,39 @@
 import React, { PureComponent } from 'react'
-import { Row, Col, Input, Button, Alert } from 'antd'
+import { Row, Col, Input, Button, Alert, message, notification } from 'antd'
 import { ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons'
 import { withRouter } from 'react-router-dom'
 import _flow from 'lodash.flow'
 import classnames from 'classnames'
 
 import classes from './Race.scss'
-import { connect as connectToApp } from '@providers/app'
+import resource from '@config/resource'
 import { LOADING, IDLE, raceStatus as raceStatusConf } from '@config/constant'
 import { raceTimeLimit, raceCountdown } from '@config/collection'
+import platormApiSvc from '@services/platform-api/'
+import { connect as connectToApp } from '@providers/app'
 import Layout from '@containers/Layout/Layout'
 
-const stringValue = "I never came to the beach or stood by the ocean, I never sat by the shore under the sun with my feet in the sand, but you brought me here and I'm happy that you did."
+// const stringValue = "I never came to the beach or stood by the ocean, I never sat by the shore under the sun with my feet in the sand, but you brought me here and I'm happy that you did."
 // const stringValue = 'Never ever quit.'
-// const stringValue = 'I never came to the beach'
+const stringValue = 'I never came to the beach'
 
-class Race extends PureComponent {
+export class Race extends PureComponent {
   state = {
-    longText: '',
-    userInput: '',
-    wordToMatch: '',
-    words: [],
-    wordsCompleted: [],
-    matchedChars: [],
-    countDownTimer: 0,
-    raceStatus: raceStatusConf.IDLE,
-    gameInitStatus: IDLE,
-    fetchTextStatus: LOADING
+    ...this.defaultState
+  }
+
+  get defaultState () {
+    return {
+      longText: '',
+      userInput: '',
+      wordToMatch: '',
+      words: [],
+      wordsCompleted: [],
+      matchedChars: [],
+      countDownTimer: 0,
+      raceStatus: raceStatusConf.IDLE,
+      gameInitStatus: IDLE
+    }
   }
 
   componentDidMount () {
@@ -37,7 +44,10 @@ class Race extends PureComponent {
   }
 
   initRace = async () => {
-    this.setState({ gameInitStatus: LOADING })
+    this.setState({
+      ...this.defaultState,
+      gameInitStatus: LOADING
+    })
 
     const stateUpdate = {
       gameInitStatus: IDLE
@@ -53,6 +63,25 @@ class Race extends PureComponent {
     } catch (e) {}
 
     this.setState(stateUpdate)
+  }
+
+  async saveRaceResult () {
+    const { user } = this.props
+    const raceStats = this.getRaceStats()
+
+    try {
+      platormApiSvc.post(resource.race, {
+        ...raceStats,
+        user: user._id
+      })
+
+      notification.success({
+        message: 'Race successfully Saved',
+        description: 'Your new record has been added to your race history.'
+      })
+    } catch (e) {
+      message.warning('Failed to save your race.')
+    }
   }
 
   countDown = () => {
@@ -72,8 +101,8 @@ class Race extends PureComponent {
 
   startRace () {
     this.setState(state => ({
-      raceStatus: raceStatusConf.ONGOING,
       wordToMatch: state.words[0],
+      raceStatus: raceStatusConf.ONGOING,
       remainingTime: this.props.raceTimeLimit + 1
     }), () => {
       const textBox = document.querySelector('#text-box')
@@ -97,18 +126,23 @@ class Race extends PureComponent {
   endRace () {
     clearTimeout(this.raceTimer)
     this.setState({
-      raceStatus: raceStatusConf.END,
-      raceResult: this.getWpm()
+      raceStatus: raceStatusConf.END
     })
+    this.saveRaceResult()
   }
 
-  getWpm () {
-    const { wordsCompleted, matchedChars, remainingTime } = this.state
+  getRaceStats () {
+    const { wordsCompleted, matchedChars, remainingTime = 0 } = this.state
+    const { raceTimeLimit } = this.props
     const text = wordsCompleted.join('') + matchedChars.join('')
-    const time = this.props.raceTimeLimit - remainingTime
-    const wpm = (text.length / 5) * 60 / time
+    const time = raceTimeLimit - remainingTime
+    const wpm = text.length ? (text.length / 5) * 60 / time : 0
 
-    return (wpm > 0) ? Math.round(wpm) + ' wpm' : ''
+    return {
+      wpm: Math.round(wpm),
+      time,
+      textLength: text.length
+    }
   }
 
   userInputOnChange = (e) => {
@@ -198,7 +232,9 @@ class Race extends PureComponent {
 
   render () {
     const { IDLE, ONGOING, END } = raceStatusConf
-    const { wordToMatch = '', words, wordsCompleted, countDownTimer, userInput, remainingTime, raceStatus } = this.state
+    const { wordToMatch = '', words, wordsCompleted, countDownTimer, userInput, remainingTime, raceStatus, matchedChars } = this.state
+    const hasTypo = matchedChars.length < userInput.length
+    const { wpm } = this.getRaceStats()
     let alert = null
 
     if (raceStatus === END) {
@@ -212,7 +248,7 @@ class Race extends PureComponent {
         <Alert
           className="text-center mb-3"
           type="info"
-          message="Sorry, you run out of time."
+          message="Sorry, you ran out of time."
         />
       )
     }
@@ -224,9 +260,11 @@ class Race extends PureComponent {
           value={userInput}
           onChange={this.userInputOnChange}
           maxLength={wordToMatch.length + 5}
+          className={classnames(classes.textBox, hasTypo ? classes.hasTypo : '')}
           id="text-box"
           size="large"
           autoCorrect="off"
+          autoComplete="off"
           autoCapitalize="off"
         />}
       </div>
@@ -242,7 +280,7 @@ class Race extends PureComponent {
       )
       meter = (
         <Col span={12} className={classes.meter}>
-          <DashboardOutlined /> {this.getWpm()}
+          <DashboardOutlined /> {wpm} wpm
         </Col>
       )
     }
@@ -251,23 +289,29 @@ class Race extends PureComponent {
 
     return (
       <Layout>
-        <div className="text-center">
-          {raceStatus !== ONGOING && <Button
-            onClick={this.initRace}
-            className={classes.startBtn}
-            size="large"
-            type="primary"
-          >{buttonLabel}</Button>}
-          {!!countDownTimer && <div>{countDownTimer}</div>}
-        </div>
-        <div className={classnames(classes.raceBox)}>
-          {alert}
-          <Row className={classes.ticker}>
-            {time}
-            {meter}
-          </Row>
-          {raceBox}
-        </div>
+        <Row>
+          <Col xl={12} lg={24}>
+            <div className={classnames(classes.raceBox)}>
+              <div className="text-center mb-4">
+                {raceStatus !== ONGOING && <Button
+                  onClick={this.initRace}
+                  className={classes.startBtn}
+                  size="large"
+                  type="primary"
+                >{buttonLabel}</Button>}
+                {!!countDownTimer && <div>{countDownTimer}</div>}
+              </div>
+              {alert}
+              <Row className={classes.ticker}>
+                {time}
+                {meter}
+              </Row>
+              {raceBox}
+            </div>
+          </Col>
+          <Col xl={12} lg={24}>
+          </Col>
+        </Row>
       </Layout>
     )
   }
@@ -278,8 +322,8 @@ Race.defaultProps = {
   raceCountdown: raceCountdown
 }
 
-const appState = ({ isAuthenticated }) => {
-  return { isAuthenticated }
+const appState = ({ isAuthenticated, user }) => {
+  return { user }
 }
 export default _flow([
   withRouter,
