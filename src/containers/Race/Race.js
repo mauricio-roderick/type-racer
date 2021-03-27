@@ -1,18 +1,18 @@
 import React, { PureComponent } from 'react'
-import { Row, Col, Input, Button, Alert, Table, Typography, message, notification } from 'antd'
+import { Row, Col, Input, Button, Alert, message, notification } from 'antd'
 import { ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons'
 import { withRouter } from 'react-router-dom'
 import _flow from 'lodash.flow'
 import classnames from 'classnames'
-import moment from 'moment'
 
 import classes from './Race.scss'
 import resource from '@config/resource'
 import { LOADING, IDLE, raceStatus as raceStatusConf } from '@config/constant'
-import { raceTimeLimit, raceCountdown, dateTimeFormat } from '@config/collection'
+import { raceTimeLimit, raceCountdown } from '@config/collection'
 import platormApiSvc from '@services/platform-api/'
 import { connect as connectToApp } from '@providers/app'
 import Layout from '@containers/Layout/Layout'
+import RaceHistory from '@components/Race/History/History'
 
 // const stringValue = "I never came to the beach or stood by the ocean, I never sat by the shore under the sun with my feet in the sand, but you brought me here and I'm happy that you did."
 // const stringValue = 'Never ever quit.'
@@ -38,30 +38,8 @@ export class Race extends PureComponent {
     }
   }
 
-  componentDidMount () {
-    this.getRaceHistory()
-  }
-
   async getuserInput () {
     return stringValue
-  }
-
-  async getRaceHistory () {
-    this.setState({ fetchHistoryStatus: LOADING })
-    const stateUpdate = {
-      fetchHistoryStatus: IDLE
-    }
-    try {
-      const { data } = await platormApiSvc.get(resource.race)
-      const { totalRecords } = data.meta
-
-      stateUpdate.raceHistory = data.raceHistory
-      stateUpdate.totalRaceHistory = totalRecords
-    } catch (e) {
-      message.warning('Failed to save your race.')
-    }
-
-    this.setState(stateUpdate)
   }
 
   initRace = async () => {
@@ -100,6 +78,7 @@ export class Race extends PureComponent {
         message: 'Race successfully Saved',
         description: 'Your new record has been added to your race history.'
       })
+      this.setState({ historyRefresh: Date.now() })
     } catch (e) {
       message.warning('Failed to save your race.')
     }
@@ -251,46 +230,6 @@ export class Race extends PureComponent {
     )
   }
 
-  renderRaceHistory () {
-    const { fetchHistoryStatus, raceHistory, totalRaceHistory } = this.state
-    const columns = [{
-      title: 'Total Time',
-      dataIndex: 'time',
-      align: 'center',
-      width: '15%'
-    }, {
-      title: 'Text Length',
-      dataIndex: 'textLength',
-      align: 'center',
-      width: '15%'
-    }, {
-      title: 'Speed(wpm)',
-      dataIndex: 'wpm',
-      align: 'center',
-      width: '30%'
-    }, {
-      title: 'Date & Time',
-      dataIndex: 'timestamp',
-      render: timestamp => moment(timestamp).format(dateTimeFormat.client),
-      width: '30%'
-    }]
-    const pagination = {
-      hideOnSinglePage: true,
-      total: totalRaceHistory,
-      position: ['', 'bottomCenter'],
-      pageSize: 10
-    }
-    return (
-      <Table
-        title={() => <Typography.Title level={4}>Race History</Typography.Title>}
-        columns={columns}
-        loading={fetchHistoryStatus === LOADING}
-        dataSource={raceHistory}
-        pagination={pagination}
-      />
-    )
-  }
-
   render () {
     const { IDLE, ONGOING, END } = raceStatusConf
     const {
@@ -301,7 +240,8 @@ export class Race extends PureComponent {
       userInput,
       remainingTime,
       raceStatus,
-      matchedChars
+      matchedChars,
+      historyRefresh
     } = this.state
     const hasTypo = matchedChars.length < userInput.length
     const { wpm } = this.getRaceStats()
@@ -359,7 +299,7 @@ export class Race extends PureComponent {
 
     return (
       <Layout>
-        <Row>
+        <Row align="top">
           <Col xl={12} lg={24}>
             <div className={classnames(classes.raceBox)}>
               <div className="text-center mb-4">
@@ -380,7 +320,7 @@ export class Race extends PureComponent {
             </div>
           </Col>
           <Col xl={12} lg={24}>
-            {this.renderRaceHistory()}
+            <RaceHistory refresh={historyRefresh} />
           </Col>
         </Row>
       </Layout>
