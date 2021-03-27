@@ -2,7 +2,7 @@ const prefix = '/private'
 
 const resource = {
   auth: '/oauth',
-  race: prefix + '/race'
+  raceHistory: prefix + '/race-history'
 }
 
 export default resource
