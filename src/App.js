@@ -1,6 +1,7 @@
 import React, { Suspense, PureComponent } from 'react'
 import { Redirect, Route, Switch } from 'react-router-dom'
-import { Icon, message } from 'antd'
+import { message } from 'antd'
+import { LoadingOutlined } from '@ant-design/icons'
 import classnames from 'classnames'
 import _pick from 'lodash.pick'
 import jwtDecode from 'jwt-decode'
@@ -14,11 +15,7 @@ import SecureRoute from '@containers/SecureRoute/SecureRoute'
 const PreLoader = () => (
   <div className="root-preloader">
     <div className="logo">{process.env.APP_NAME}</div>
-    <Icon
-      spin
-      type="loading-3-quarters"
-      className={classnames('mt-2')}
-    />
+    <LoadingOutlined className={classnames('mt-2')} />
   </div>
 )
 
@@ -30,6 +27,9 @@ const Logout = ComponentLoader({
 })
 const Home = ComponentLoader({
   loader: () => import('@containers/Home/Home')
+})
+const Race = ComponentLoader({
+  loader: () => import('@containers/Race/Race')
 })
 const Page404 = ComponentLoader({
   loader: () => import('@containers/Page404/Page404')
@@ -46,6 +46,10 @@ class App extends PureComponent {
       isAuthenticated: false,
       user: {}
     }
+  }
+
+  get accessToken () {
+    return localStorage.getItem('accessToken')
   }
 
   authCompelete = (token) => {
@@ -69,9 +73,24 @@ class App extends PureComponent {
     })
   }
 
+  loadUserDetails () {
+    const { accessToken } = this
+    if (accessToken) {
+      try {
+        const user = jwtDecode(accessToken)
+        this.setState({
+          user,
+          isAuthenticated: true
+        })
+      } catch (e) {
+        message.error('Something went wrong. Please try again.')
+      }
+    }
+  }
+
   componentDidMount () {
-    if (this.state.isAuthenticated) {
-      this.preload()
+    if (this.accessToken) {
+      this.loadUserDetails()
     }
 
     window.addEventListener('storage', ({ key, newValue }) => {
@@ -88,7 +107,7 @@ class App extends PureComponent {
   render () {
     const { isAuthenticated, user } = this.state
 
-    if (isAuthenticated && !user._id) {
+    if (this.accessToken && !user._id) {
       return <PreLoader />
     }
 
@@ -103,8 +122,9 @@ class App extends PureComponent {
               { isAuthenticated ? <Redirect to={appRoutes.home} /> : <Login /> }
             </Route>
             <Route path={appRoutes.pageNotFound} component={Page404} />
-            <Route exact path={appRoutes.logout} component={Logout} />
+            <Route path={appRoutes.logout} component={Logout} />
             <SecureRoute exact path={appRoutes.home} component={Home} />
+            <SecureRoute path={appRoutes.race} component={Race} />
             <Redirect to={appRoutes.pageNotFound} />
           </Switch>
         </Suspense>

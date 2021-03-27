@@ -18,8 +18,9 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/headhuntr_io/hh-web",
   "dependencies": {
+    "@ant-design/icons": "^4.6.2",
     "@sentry/browser": "^6.2.1",
-    "antd": "^3.26.20",
+    "antd": "^4.14.1",
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "eslint-plugin-react": "^7.16.0",
