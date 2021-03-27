@@ -16,6 +16,9 @@ class PageLayout extends PureComponent {
       link: appRoutes.home,
       label: 'Home'
     }, {
+      link: appRoutes.race,
+      label: 'Race'
+    }, {
       link: appRoutes.logout,
       label: 'Logout'
     }] : [{

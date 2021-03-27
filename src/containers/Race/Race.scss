@@ -1,12 +1,22 @@
 .raceBox {
   max-width: 100%;
-  width: 500px;
+  width: 800px;
   text-align: center;
   margin: 0 auto;
+  padding: 20px;
 }
-.text {
+.startBtn {
+  font-weight: bold;
+}
+.longText {
+  margin: 20px 0;
   user-select: none;
+  font-size: 26px;
+  line-height: 28px;
+  text-align: justify;
 }
 .currentWord {
   text-decoration: underline;
+}
+.displayMode1 {
 }

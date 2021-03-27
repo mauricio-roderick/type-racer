@@ -2,20 +2,22 @@ import React, { PureComponent } from 'react'
 import { Input, Button } from 'antd'
 import { withRouter } from 'react-router-dom'
 import _flow from 'lodash.flow'
+import classnames from 'classnames'
 
 import classes from './Race.scss'
 import { connect as connectToApp } from '@providers/app'
 import { LOADING, IDLE } from '@config/constant'
 import Layout from '@containers/Layout/Layout'
 
-// const textValue = "I never came to the beach or stood by the ocean, I never sat by the shore under the sun with my feet in the sand, but you brought me here and I'm happy that you did."
-const stringValue = 'Never ever quit.'
+const stringValue = "I never came to the beach or stood by the ocean, I never sat by the shore under the sun with my feet in the sand, but you brought me here and I'm happy that you did."
+// const stringValue = 'Never ever quit.'
 
 class Race extends PureComponent {
   state = {
-    text: '',
-    textValue: '',
+    longText: '',
+    userInput: '',
     wordsCompleted: [],
+    matchedChars: [],
     countDownTimer: 0,
     gameInitStatus: IDLE,
     fetchTextStatus: LOADING
@@ -24,7 +26,7 @@ class Race extends PureComponent {
   componentDidMount () {
   }
 
-  async getTextValue () {
+  async getuserInput () {
     return stringValue
   }
 
@@ -35,11 +37,12 @@ class Race extends PureComponent {
       gameInitStatus: IDLE
     }
     try {
-      let text = await this.getTextValue()
-      text = text.trim()
+      let longText = await this.getuserInput()
+      longText = longText.trim()
+      const words = longText.split(' ')
 
-      stateUpdate.text = text
-      stateUpdate.textArray = text.split(' ')
+      stateUpdate.longText = longText
+      stateUpdate.words = words.map((word, i) => i !== (words.length - 1) ? word + ' ' : word)
       this.countDown()
     } catch (e) {}
 
@@ -62,36 +65,44 @@ class Race extends PureComponent {
   }
 
   startRace () {
-    this.setState({
+    this.setState(state => ({
       raceStarted: true,
-      wordToMatch: this.getWordToMatch()
-    })
+      wordToMatch: state.words[0]
+    }))
   }
 
-  getWordToMatch (wordIndex = 0) {
-    const { textArray } = this.state
-    let wordToMatch = textArray[wordIndex]
-
-    if (textArray.length > 1 && wordIndex !== (textArray.length - 1)) {
-      wordToMatch += ' '
-    }
-
-    return wordToMatch
-  }
-
-  textValueOnChange = (e) => {
+  userInputOnChange = (e) => {
     const { value } = e.target
     this.setState(state => {
-      const { wordToMatch } = state
+      const { wordToMatch, words } = state
+      const matchedChars = []
 
-      let stateUpdate = { textValue: value }
+      let stateUpdate = {
+        userInput: value
+      }
 
       if (value === wordToMatch) {
-        const wordsCompleted = [...this.state.wordsCompleted, wordToMatch.trim()]
+        const wordsCompleted = [...this.state.wordsCompleted, wordToMatch]
         stateUpdate = {
-          textValue: '',
+          userInput: '',
+          matchedChars: [],
           wordsCompleted: wordsCompleted,
-          wordToMatch: this.getWordToMatch(wordsCompleted.length)
+          wordToMatch: words[wordsCompleted.length]
+        }
+
+        if (wordsCompleted.length === words.length) {
+          this.endRace()
+        }
+      } else {
+        const _wordToMatch = wordToMatch.split('')
+        value.split('').every((item, i) => {
+          const matched = item === _wordToMatch[i]
+          if (matched) matchedChars.push(item)
+          return matched
+        })
+
+        if (matchedChars.length > this.state.matchedChars.length) {
+          stateUpdate.matchedChars = matchedChars
         }
       }
 
@@ -99,57 +110,66 @@ class Race extends PureComponent {
     })
   }
 
-  currentWord () {
-    const { wordToMatch, textValue, textArray, wordsCompleted } = this.state
-    const _textValue = textValue.split('')
-    const _wordToMatch = wordToMatch.trim().split('')
-    let currentWord = wordToMatch.trim()
+  endRace () {
+  }
 
-    if (textValue) {
-      let matchedChars = 0
-      _textValue.every((item, i) => {
+  currentWord () {
+    const { wordToMatch, userInput, words, wordsCompleted } = this.state
+    let currentWord = wordToMatch
+    let fontColor = 'ant-typography-success'
+
+    if (userInput) {
+      const _wordToMatch = wordToMatch.split('')
+      let matchCount = 0
+      userInput.split('').every((item, i) => {
         const matched = item === _wordToMatch[i]
-        if (matched) matchedChars++
+        if (matched) {
+          matchCount++
+        } else {
+          fontColor = 'ant-typography-danger'
+        }
         return matched
       })
 
-      const matchedPortion = _wordToMatch.splice(0, matchedChars)
-      const unmatchedPortion = _wordToMatch.splice(0, _textValue.length - matchedPortion.length)
+      currentWord = currentWord.trim().split('')
+      const matchedPortion = currentWord.splice(0, matchCount)
+      const unmatchedPortion = currentWord.splice(0, userInput.length - matchedPortion.length)
+      const wordSpace = (wordsCompleted.length < (words.length - 1)) ? ' ' : ''
 
       currentWord = (
         <>
-          <b>{matchedPortion}</b>
-          <span>{unmatchedPortion}</span>
-          {_wordToMatch}
+          <span className={classes.currentWord}>
+            <b>{matchedPortion}</b>
+            <span className={classes.unmatched}>{unmatchedPortion}</span>
+            {currentWord}
+          </span>
+          {wordSpace}
         </>
       )
     }
 
-    const remaining = [...textArray].splice(wordsCompleted.length + 1)
+    const remaining = [...words].splice(wordsCompleted.length + 1)
     return (
       <>
-        {wordsCompleted.join(' ')}
-        <span className={classes.currentWord}>{currentWord}</span>
-        {remaining.join(' ')}
+        {wordsCompleted}
+        {<span className={classnames('ant-typography', fontColor)}>{currentWord}</span>}
+        {remaining}
       </>
     )
   }
 
   render () {
-    const { wordToMatch, text, countDownTimer, raceStarted, textValue } = this.state
+    const { wordToMatch = '', countDownTimer, raceStarted, userInput } = this.state
 
     const raceBox = raceStarted ? (
       <div className={classes.raceBox}>
-        <div className={classes.text}>
-          {text}
-        </div>
-        <div>{this.currentWord()}</div>
-        <i>{wordToMatch}</i>
+        <div className={classes.longText}>{this.currentWord()}</div>
         <Input
-          value={textValue}
-          onChange={this.textValueOnChange}
-          autoCorrect="off"
+          value={userInput}
+          onChange={this.userInputOnChange}
           maxLength={wordToMatch.length + 5}
+          size="large"
+          autoCorrect="off"
           autoCapitalize="off"
         />
       </div>
@@ -158,7 +178,12 @@ class Race extends PureComponent {
     return (
       <Layout>
         <div className="text-center">
-          <Button onClick={this.initRace}>Start Race</Button>
+          <Button
+            onClick={this.initRace}
+            className={classes.startBtn}
+            size="large"
+            type="primary"
+          >Start Race</Button>
           {!!countDownTimer && <div>{countDownTimer}</div>}
           {raceBox}
         </div>
