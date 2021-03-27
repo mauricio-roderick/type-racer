@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
-import { Row, Col, Input, Button, Alert, Table, message, notification } from 'antd'
-import { ClockCircleOutlined, DashboardOutlined, Loading3QuartersOutlined } from '@ant-design/icons'
+import { Row, Col, Input, Button, Alert, Table, Typography, message, notification } from 'antd'
+import { ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons'
 import { withRouter } from 'react-router-dom'
 import _flow from 'lodash.flow'
 import classnames from 'classnames'
@@ -20,7 +20,8 @@ const stringValue = 'I never came to the beach'
 
 export class Race extends PureComponent {
   state = {
-    ...this.defaultState
+    ...this.defaultState,
+    raceHistory: []
   }
 
   get defaultState () {
@@ -29,7 +30,6 @@ export class Race extends PureComponent {
       userInput: '',
       wordToMatch: '',
       words: [],
-      raceHistory: [],
       wordsCompleted: [],
       matchedChars: [],
       countDownTimer: 0,
@@ -53,7 +53,10 @@ export class Race extends PureComponent {
     }
     try {
       const { data } = await platormApiSvc.get(resource.race)
+      const { totalRecords } = data.meta
+
       stateUpdate.raceHistory = data.raceHistory
+      stateUpdate.totalRaceHistory = totalRecords
     } catch (e) {
       message.warning('Failed to save your race.')
     }
@@ -249,18 +252,43 @@ export class Race extends PureComponent {
   }
 
   renderRaceHistory () {
-    const { fetchHistoryStatus, raceHistory } = this.state
+    const { fetchHistoryStatus, raceHistory, totalRaceHistory } = this.state
     const columns = [{
-      title: 'wpm',
-      dataIndex: 'wpm'
+      title: 'Total Time',
+      dataIndex: 'time',
+      align: 'center',
+      width: '15%'
     }, {
-      title: 'Date',
+      title: 'Text Length',
+      dataIndex: 'textLength',
+      align: 'center',
+      width: '15%'
+    }, {
+      title: 'Speed(wpm)',
+      dataIndex: 'wpm',
+      align: 'center',
+      width: '30%'
+    }, {
+      title: 'Date & Time',
       dataIndex: 'timestamp',
-      render: timestamp => moment(timestamp).format(dateTimeFormat.client)
+      render: timestamp => moment(timestamp).format(dateTimeFormat.client),
+      width: '30%'
     }]
-    return fetchHistoryStatus !== LOADING ? (
-      <Table columns={columns} dataSource={raceHistory} />
-    ) : <Loading3QuartersOutlined className={classes.raceHistoryLoader} spin />
+    const pagination = {
+      hideOnSinglePage: true,
+      total: totalRaceHistory,
+      position: ['', 'bottomCenter'],
+      pageSize: 10
+    }
+    return (
+      <Table
+        title={() => <Typography.Title level={4}>Race History</Typography.Title>}
+        columns={columns}
+        loading={fetchHistoryStatus === LOADING}
+        dataSource={raceHistory}
+        pagination={pagination}
+      />
+    )
   }
 
   render () {
