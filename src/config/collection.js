@@ -12,7 +12,13 @@ export const notifMessage = {
 export const global = {
   notifKey: 'GLOBAL_NOTIF'
 }
-export const raceTimeLimit = 90 // seconds
+export const raceTimeLimit = 10 // seconds
 export const raceCountdown = 3 // seconds
+export const countDownLabels = [
+  '',
+  'Go!',
+  'Set',
+  'Ready'
+]
 
 export default {}
