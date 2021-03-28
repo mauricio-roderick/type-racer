@@ -19,7 +19,7 @@ import UserProfile from '@components/Race/UserProfile/UserProfile'
 
 export class Race extends PureComponent {
   state = {
-    ...this.defaultState,
+    ...this.defaultState
   }
 
   get defaultState () {
