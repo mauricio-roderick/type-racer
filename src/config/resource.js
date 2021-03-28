@@ -1,4 +1,4 @@
-const prefix = '/private'
+const prefix = '/api'
 
 const resource = {
   auth: '/oauth',
