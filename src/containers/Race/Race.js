@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { Row, Col, Input, Button, Alert, message, notification } from 'antd'
-import { ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons'
+import { ClockCircleOutlined, DashboardOutlined, Loading3QuartersOutlined } from '@ant-design/icons'
 import { withRouter } from 'react-router-dom'
 import classnames from 'classnames'
 import _flow from 'lodash.flow'
@@ -17,10 +17,6 @@ import RaceHistory from '@components/Race/History/History'
 import Timer from '@components/Race/Timer/Timer'
 import UserProfile from '@components/Race/UserProfile/UserProfile'
 
-// const stringValue = "I never came to the beach or stood by the ocean, I never sat by the shore under the sun with my feet in the sand, but you brought me here and I'm happy that you did."
-// const stringValue = 'Never ever quit.'
-// const stringValue = 'I never came to the beach'
-
 export class Race extends PureComponent {
   state = {
     ...this.defaultState,
@@ -36,6 +32,7 @@ export class Race extends PureComponent {
       wordsCompleted: [],
       matchedChars: [],
       countDownTimer: 0,
+      raceNotif: null,
       raceStatus: raceStatusConf.IDLE,
       gameInitStatus: IDLE
     }
@@ -48,7 +45,7 @@ export class Race extends PureComponent {
   async getTextValue () {
     return await platormApiSvc.get(resource.randomText, {
       params: {
-        words: 30
+        words: 4
       }
     })
   }
@@ -71,7 +68,9 @@ export class Race extends PureComponent {
       stateUpdate.words = words.map((word, i) => i !== (words.length - 1) ? word + ' ' : word)
       stateUpdate.raceStatus = raceStatusConf.COUNTDOWN
       this.countDown()
-    } catch (e) {}
+    } catch (e) {
+      message.error('Failed to initialize game.')
+    }
 
     this.setState(stateUpdate)
   }
@@ -135,13 +134,34 @@ export class Race extends PureComponent {
       })
   }
 
-  endRace () {
+  endRace (userInitiated = false) {
     clearTimeout(this.raceTimer)
+
+    const { words, wordsCompleted } = this.state
+    let raceNotif
+
+    if (!userInitiated) {
+      if (words.length === wordsCompleted.length) {
+        raceNotif = {
+          message: 'Awesome, you completed the race!',
+          type: 'success'
+        }
+      } else {
+        raceNotif = {
+          message: 'Sorry, you ran out of time.',
+          type: 'info'
+        }
+      }
+    }
+
     this.setState({
+      raceNotif,
       raceStatus: raceStatusConf.END
     })
 
-    this.saveRaceResult()
+    if (!userInitiated) {
+      this.saveRaceResult()
+    }
   }
 
   getRaceStats () {
@@ -198,9 +218,9 @@ export class Race extends PureComponent {
     })
   }
 
-  currentWord () {
+  textProgress () {
     const { wordToMatch = '', userInput, words, wordsCompleted } = this.state
-    let currentWord = wordToMatch.trim()
+    let textProgress = wordToMatch.trim()
     let fontColor = 'ant-typography-success'
     const wordSpace = (wordsCompleted.length < (words.length - 1)) ? ' ' : ''
 
@@ -217,15 +237,15 @@ export class Race extends PureComponent {
         return matched
       })
 
-      currentWord = currentWord.split('')
-      const matchedPortion = currentWord.splice(0, matchCount)
-      const unmatchedPortion = currentWord.splice(0, userInput.length - matchedPortion.length)
+      textProgress = textProgress.split('')
+      const matchedPortion = textProgress.splice(0, matchCount)
+      const unmatchedPortion = textProgress.splice(0, userInput.length - matchedPortion.length)
 
-      currentWord = (
+      textProgress = (
         <>
           <b>{matchedPortion}</b>
           <span className={classes.unmatched}>{unmatchedPortion}</span>
-          {currentWord}
+          {textProgress}
         </>
       )
     }
@@ -234,7 +254,7 @@ export class Race extends PureComponent {
     return (
       <>
         <span className="ant-typography ant-typography-success">{wordsCompleted}</span>
-        {<span className={classnames(classes.currentWord, 'ant-typography', fontColor)}>{currentWord}</span>}
+        {<span className={classnames(classes.currentWord, 'ant-typography', fontColor)}>{textProgress}</span>}
         {wordSpace}
         {remaining}
       </>
@@ -252,9 +272,13 @@ export class Race extends PureComponent {
     const hasTypo = matchedChars.length < userInput.length
 
     return (
-      <div className={classnames({ 'd-none': raceStatus !== ONGOING })}>
-        <div className={classes.longText}>{this.currentWord()}</div>
-        {raceStatus !== END && <Input
+      <>
+        {[ONGOING, END].includes(raceStatus) && (
+          <div className={classnames(classes.longText)}>
+            {this.textProgress()}
+          </div>
+        )}
+        {raceStatus === ONGOING && <Input
           value={userInput}
           onChange={this.userInputOnChange}
           maxLength={wordToMatch.length + 5}
@@ -265,7 +289,7 @@ export class Race extends PureComponent {
           autoComplete="off"
           autoCapitalize="off"
         />}
-      </div>
+      </>
     )
   }
 
@@ -298,50 +322,69 @@ export class Race extends PureComponent {
     ) : null
   }
 
-  render () {
+  renderRaceButtons () {
     const { ONGOING, COUNTDOWN, END } = raceStatusConf
+    const { raceStatus } = this.state
+
+    const startButton = ![ONGOING, COUNTDOWN].includes(raceStatus) ? (
+      <Button
+        onClick={this.initRace}
+        className={classes.raceButton}
+        type="primary"
+        size="large"
+      >
+        {(raceStatus !== END) ? 'Start Race' : 'Start a New Race'}
+      </Button>
+    ) : null
+
+    const endRace = raceStatus === ONGOING ? (
+      <Button
+        onClick={() => this.endRace(true)}
+        className={classes.raceButton}
+        type="primary"
+        size="large"
+        danger
+      >
+        End Race
+      </Button>
+    ) : null
+
+    return (
+      <div className="text-center mb-4">
+        {startButton}
+        {endRace}
+      </div>
+    )
+  }
+
+  render () {
     const {
-      words,
-      wordsCompleted,
       countDownTimer,
-      raceStatus,
-      historyRefresh
+      raceNotif,
+      historyRefresh,
+      gameInitStatus
     } = this.state
-    let alert = null
-
-    if (raceStatus === END) {
-      alert = (words.length === wordsCompleted.length) ? (
-        <Alert
-          className="text-center mb-3"
-          type="success"
-          message="Awesome, you completed the game!"
-        />
-      ) : (
-        <Alert
-          className="text-center mb-3"
-          type="info"
-          message="Sorry, you ran out of time."
-        />
-      )
-    }
-
-    const buttonLabel = raceStatus !== END ? 'Start Race' : 'Start a New Race'
+    const notif = raceNotif ? (
+      <Alert
+        {...raceNotif}
+        className="text-center mb-3"
+      />
+    ) : null
+    const initIndicator = gameInitStatus === LOADING ? (
+      <Loading3QuartersOutlined className={classes.initIcon} spin />
+    ) : null
 
     return (
       <Layout>
         <Row align="top">
           <Col xl={12} lg={24}>
             <div className={classnames(classes.raceBox)}>
-              {alert}
-              <div className="text-center mb-4">
-                {![ONGOING, COUNTDOWN].includes(raceStatus) && <Button
-                  onClick={this.initRace}
-                  className={classes.startBtn}
-                  size="large"
-                  type="primary"
-                >{buttonLabel}</Button>}
-                {!!countDownTimer && <div className={classes.countDownTimer}>{_get(countDownLabels, countDownTimer)}</div>}
+              {notif}
+              {initIndicator}
+              <div className={classnames(classes.countDownTimer, 'text-center')}>
+                {_get(countDownLabels, countDownTimer)}
               </div>
+              {this.renderRaceButtons()}
               {this.renderTicker()}
               {this.renderRaceBox()}
             </div>
