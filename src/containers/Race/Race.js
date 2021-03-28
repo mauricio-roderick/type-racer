@@ -9,7 +9,7 @@ import _get from 'lodash.get'
 import classes from './Race.scss'
 import resource from '@config/resource'
 import { LOADING, IDLE, raceStatus as raceStatusConf } from '@config/constant'
-import { raceTimeLimit, raceCountdown, countDownLabels } from '@config/collection'
+import { raceTimeLimit, raceCountdown, wordsCount, countDownLabels } from '@config/collection'
 import platormApiSvc from '@services/platform-api/'
 import { connect as connectToApp } from '@providers/app'
 import Layout from '@containers/Layout/Layout'
@@ -45,7 +45,7 @@ export class Race extends PureComponent {
   async getTextValue () {
     return await platormApiSvc.get(resource.randomText, {
       params: {
-        words: 4
+        words: wordsCount
       }
     })
   }
