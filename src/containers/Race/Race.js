@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { Row, Col, Input, Button, Alert, message, notification } from 'antd'
+import { Row, Col, Input, Button, Alert, Progress, message, notification } from 'antd'
 import { ClockCircleOutlined, DashboardOutlined, Loading3QuartersOutlined } from '@ant-design/icons'
 import { withRouter } from 'react-router-dom'
 import classnames from 'classnames'
@@ -267,14 +267,18 @@ export class Race extends PureComponent {
       wordToMatch = '',
       userInput,
       raceStatus,
-      matchedChars
+      matchedChars,
+      longText
     } = this.state
+    const { textLength } = this.getRaceStats()
     const hasTypo = matchedChars.length < userInput.length
+    const percentage = (textLength / longText.length) * 100
 
     return (
       <>
         {[ONGOING, END].includes(raceStatus) && (
           <div className={classnames(classes.longText)}>
+            <Progress className="my-2" percent={Math.floor(percentage)} />
             {this.textProgress()}
           </div>
         )}
