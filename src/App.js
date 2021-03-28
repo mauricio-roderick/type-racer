@@ -11,6 +11,7 @@ import appRoutes from '@config/app-routes'
 import { AppContext } from '@providers/app'
 import ComponentLoader from '@components/shared/ComponentLoader/ComponentLoader'
 import SecureRoute from '@containers/SecureRoute/SecureRoute'
+import Layout from '@containers/Layout/Layout'
 
 const PreLoader = () => (
   <div className="root-preloader">
@@ -119,12 +120,28 @@ class App extends PureComponent {
         <Suspense fallback={<PreLoader />}>
           <Switch>
             <Route path={appRoutes.login}>
-              { isAuthenticated ? <Redirect to={appRoutes.home} /> : <Login /> }
+              { isAuthenticated ? <Redirect to={appRoutes.home} /> : (
+                <Layout>
+                  <Login />
+                </Layout>
+              )}
             </Route>
             <Route path={appRoutes.pageNotFound} component={Page404} />
-            <Route path={appRoutes.logout} component={Logout} />
-            <SecureRoute exact path={appRoutes.home} component={Home} />
-            <SecureRoute path={appRoutes.race} component={Race} />
+            <Route path={appRoutes.logout}>
+              <Layout>
+                <Logout />
+              </Layout>
+            </Route>
+            <SecureRoute exact path={appRoutes.home}>
+              <Layout>
+                <Home />
+              </Layout>
+            </SecureRoute>
+            <SecureRoute path={appRoutes.race}>
+              <Layout>
+                <Race />
+              </Layout>
+            </SecureRoute>
             <Redirect to={appRoutes.pageNotFound} />
           </Switch>
         </Suspense>

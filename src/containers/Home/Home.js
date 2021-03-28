@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react'
 import { Link } from 'react-router-dom'
 import { Typography } from 'antd'
-import Layout from '@containers/Layout/Layout'
 
 import appRoute from '@config/app-routes'
 
@@ -10,7 +9,7 @@ const { Title, Paragraph } = Typography
 class Home extends PureComponent {
   render () {
     return (
-      <Layout>
+      <>
         <Title level={2} className="text-center">Temporary Home Page</Title>
         <Paragraph>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras mattis consequat luctus. Donec ac aliquam eros. Proin at rhoncus turpis, id cursus augue. Duis vel ullamcorper justo. Nunc quis urna posuere, porttitor risus ut, rutrum nunc. Ut faucibus molestie risus, eu bibendum ante. Nam pretium vel odio ac posuere. In consequat dui at tortor tristique mollis. Integer sit amet orci mauris.
@@ -29,7 +28,7 @@ class Home extends PureComponent {
             style={{ height: 35, fontSize: 24, lineHeight: '30px' }}
           >Start Racing</Link>
         </div>
-      </Layout>
+      </>
     )
   }
 }

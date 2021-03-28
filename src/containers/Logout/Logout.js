@@ -5,7 +5,6 @@ import _flow from 'lodash.flow'
 
 import appRoute from '@config/app-routes'
 import { connect as connectToApp } from '@providers/app'
-import Layout from '@containers/Layout/Layout'
 
 const { Title, Paragraph } = Typography
 
@@ -21,7 +20,7 @@ class Logout extends PureComponent {
 
   render () {
     return (
-      <Layout>
+      <>
         <Title level={2} className="text-center">Thanks you for visiting!</Title>
         <Title level={4} className="text-center">You will be redirected to login page in a while.</Title>
         <Paragraph>
@@ -34,7 +33,7 @@ class Logout extends PureComponent {
         <Paragraph>
           Nam blandit metus a vestibulum tincidunt. Praesent hendrerit lacus euismod pharetra viverra. Etiam luctus ornare ex, ac semper arcu efficitur id. Vivamus sodales enim ut semper bibendum. Donec non porta lacus, id interdum lorem. Curabitur in varius nisl, ac hendrerit dui. Pellentesque maximus congue finibus. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         </Paragraph>
-      </Layout>
+      </>
     )
   }
 }
