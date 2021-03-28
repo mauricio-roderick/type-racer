@@ -54,21 +54,23 @@ export class RaceHistory extends PureComponent {
 
   render () {
     const { fetchHistoryStatus, raceHistory, totalRaceHistory } = this.state
+    const { page } = querySting.parse(this.props.location.search, { parseNumbers: true })
+
     const columns = [{
-      title: 'Total Time',
-      dataIndex: 'time',
+      title: 'Text Length',
+      dataIndex: 'textLength',
       align: 'center',
       width: '15%'
     }, {
-      title: 'Text Length',
-      dataIndex: 'textLength',
+      title: 'Total Time(seconds)',
+      dataIndex: 'time',
       align: 'center',
       width: '15%'
     }, {
       title: 'Speed(wpm)',
       dataIndex: 'wpm',
       align: 'center',
-      width: '30%'
+      width: '20%'
     }, {
       title: 'Date & Time',
       dataIndex: 'timestamp',
@@ -81,8 +83,8 @@ export class RaceHistory extends PureComponent {
       total: totalRaceHistory,
       position: ['bottomCenter'],
       pageSize: 10,
-      onChange: this.pageChangeHanlder
-      // current: this.props.
+      onChange: this.pageChangeHanlder,
+      current: page
     }
 
     return (
