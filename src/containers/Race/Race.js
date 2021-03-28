@@ -2,13 +2,14 @@ import React, { PureComponent } from 'react'
 import { Row, Col, Input, Button, Alert, message, notification } from 'antd'
 import { ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons'
 import { withRouter } from 'react-router-dom'
-import _flow from 'lodash.flow'
 import classnames from 'classnames'
+import _flow from 'lodash.flow'
+import _get from 'lodash.get'
 
 import classes from './Race.scss'
 import resource from '@config/resource'
 import { LOADING, IDLE, raceStatus as raceStatusConf } from '@config/constant'
-import { raceTimeLimit, raceCountdown } from '@config/collection'
+import { raceTimeLimit, raceCountdown, countDownLabels } from '@config/collection'
 import platormApiSvc from '@services/platform-api/'
 import { connect as connectToApp } from '@providers/app'
 import Layout from '@containers/Layout/Layout'
@@ -40,6 +41,10 @@ export class Race extends PureComponent {
     }
   }
 
+  componentWillUnmount () {
+    clearTimeout(this.raceTimer)
+  }
+
   async getTextValue () {
     return await platormApiSvc.get(resource.randomText, {
       params: {
@@ -64,6 +69,7 @@ export class Race extends PureComponent {
 
       stateUpdate.longText = longText
       stateUpdate.words = words.map((word, i) => i !== (words.length - 1) ? word + ' ' : word)
+      stateUpdate.raceStatus = raceStatusConf.COUNTDOWN
       this.countDown()
     } catch (e) {}
 
@@ -98,7 +104,7 @@ export class Race extends PureComponent {
       const { countDownTimer } = this.state
 
       if (countDownTimer) {
-        setTimeout(this.countDown, 1000)
+        this.raceTimer = setTimeout(this.countDown, 1000)
       } else {
         this.startRace()
       }
@@ -134,6 +140,7 @@ export class Race extends PureComponent {
     this.setState({
       raceStatus: raceStatusConf.END
     })
+
     this.saveRaceResult()
   }
 
@@ -234,21 +241,72 @@ export class Race extends PureComponent {
     )
   }
 
-  render () {
-    const { IDLE, ONGOING, END } = raceStatusConf
+  renderRaceBox () {
+    const { ONGOING, END } = raceStatusConf
     const {
       wordToMatch = '',
+      userInput,
+      raceStatus,
+      matchedChars
+    } = this.state
+    const hasTypo = matchedChars.length < userInput.length
+
+    return (
+      <div className={classnames({ 'd-none': raceStatus !== ONGOING })}>
+        <div className={classes.longText}>{this.currentWord()}</div>
+        {raceStatus !== END && <Input
+          value={userInput}
+          onChange={this.userInputOnChange}
+          maxLength={wordToMatch.length + 5}
+          className={classnames(classes.textBox, hasTypo ? classes.hasTypo : '')}
+          id="text-box"
+          size="large"
+          autoCorrect="off"
+          autoComplete="off"
+          autoCapitalize="off"
+        />}
+      </div>
+    )
+  }
+
+  renderTicker () {
+    const { raceStatus, remainingTime } = this.state
+    const { wpm } = this.getRaceStats()
+
+    let time = null
+    let meter = null
+
+    if (raceStatus !== IDLE) {
+      time = (
+        <Col span={12} className={classes.time}>
+          <ClockCircleOutlined />{' '}
+          <Timer seconds={remainingTime} />
+        </Col>
+      )
+      meter = (
+        <Col span={12} className={classes.meter}>
+          <DashboardOutlined /> {wpm} wpm
+        </Col>
+      )
+    }
+
+    return [raceStatusConf.ONGOING, raceStatusConf.END].includes(raceStatus) ? (
+      <Row className={classes.ticker}>
+        {time}
+        {meter}
+      </Row>
+    ) : null
+  }
+
+  render () {
+    const { ONGOING, COUNTDOWN, END } = raceStatusConf
+    const {
       words,
       wordsCompleted,
       countDownTimer,
-      userInput,
-      remainingTime,
       raceStatus,
-      matchedChars,
       historyRefresh
     } = this.state
-    const hasTypo = matchedChars.length < userInput.length
-    const { wpm } = this.getRaceStats()
     let alert = null
 
     if (raceStatus === END) {
@@ -267,39 +325,6 @@ export class Race extends PureComponent {
       )
     }
 
-    const raceBox = (
-      <div className={classnames({ 'd-none': raceStatus === IDLE })}>
-        <div className={classes.longText}>{this.currentWord()}</div>
-        {raceStatus !== END && <Input
-          value={userInput}
-          onChange={this.userInputOnChange}
-          maxLength={wordToMatch.length + 5}
-          className={classnames(classes.textBox, hasTypo ? classes.hasTypo : '')}
-          id="text-box"
-          size="large"
-          autoCorrect="off"
-          autoComplete="off"
-          autoCapitalize="off"
-        />}
-      </div>
-    )
-
-    let time = null
-    let meter = null
-    if (raceStatus !== IDLE) {
-      time = (
-        <Col span={12} className={classes.time}>
-          <ClockCircleOutlined />{' '}
-          <Timer seconds={remainingTime} />
-        </Col>
-      )
-      meter = (
-        <Col span={12} className={classes.meter}>
-          <DashboardOutlined /> {wpm} wpm
-        </Col>
-      )
-    }
-
     const buttonLabel = raceStatus !== END ? 'Start Race' : 'Start a New Race'
 
     return (
@@ -309,19 +334,16 @@ export class Race extends PureComponent {
             <div className={classnames(classes.raceBox)}>
               {alert}
               <div className="text-center mb-4">
-                {raceStatus !== ONGOING && <Button
+                {![ONGOING, COUNTDOWN].includes(raceStatus) && <Button
                   onClick={this.initRace}
                   className={classes.startBtn}
                   size="large"
                   type="primary"
                 >{buttonLabel}</Button>}
-                {!!countDownTimer && <div className={classes.countDownTimer}>{countDownTimer}</div>}
+                {!!countDownTimer && <div className={classes.countDownTimer}>{_get(countDownLabels, countDownTimer)}</div>}
               </div>
-              <Row className={classes.ticker}>
-                {time}
-                {meter}
-              </Row>
-              {raceBox}
+              {this.renderTicker()}
+              {this.renderRaceBox()}
             </div>
           </Col>
           <Col xl={12} lg={24}>
