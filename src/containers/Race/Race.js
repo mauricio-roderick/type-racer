@@ -18,7 +18,7 @@ import UserProfile from '@components/Race/UserProfile/UserProfile'
 
 // const stringValue = "I never came to the beach or stood by the ocean, I never sat by the shore under the sun with my feet in the sand, but you brought me here and I'm happy that you did."
 // const stringValue = 'Never ever quit.'
-const stringValue = 'I never came to the beach'
+// const stringValue = 'I never came to the beach'
 
 export class Race extends PureComponent {
   state = {
@@ -41,11 +41,11 @@ export class Race extends PureComponent {
   }
 
   async getTextValue () {
-    return stringValue
-    // return await platormApiSvc.post(resource.raceHistory, {
-    //   ...raceStats,
-    //   user: user._id
-    // })
+    return await platormApiSvc.get(resource.randomText, {
+      params: {
+        words: 30
+      }
+    })
   }
 
   initRace = async () => {
@@ -58,8 +58,8 @@ export class Race extends PureComponent {
       gameInitStatus: IDLE
     }
     try {
-      let longText = await this.getTextValue()
-      longText = longText.trim()
+      const { data } = await this.getTextValue()
+      const longText = data.text
       const words = longText.split(' ')
 
       stateUpdate.longText = longText
