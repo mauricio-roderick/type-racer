@@ -13,6 +13,8 @@ import platormApiSvc from '@services/platform-api/'
 import { connect as connectToApp } from '@providers/app'
 import Layout from '@containers/Layout/Layout'
 import RaceHistory from '@components/Race/History/History'
+import Timer from '@components/Race/Timer/Timer'
+import UserProfile from '@components/Race/UserProfile/UserProfile'
 
 // const stringValue = "I never came to the beach or stood by the ocean, I never sat by the shore under the sun with my feet in the sand, but you brought me here and I'm happy that you did."
 // const stringValue = 'Never ever quit.'
@@ -38,8 +40,12 @@ export class Race extends PureComponent {
     }
   }
 
-  async getuserInput () {
+  async getTextValue () {
     return stringValue
+    // return await platormApiSvc.post(resource.raceHistory, {
+    //   ...raceStats,
+    //   user: user._id
+    // })
   }
 
   initRace = async () => {
@@ -52,7 +58,7 @@ export class Race extends PureComponent {
       gameInitStatus: IDLE
     }
     try {
-      let longText = await this.getuserInput()
+      let longText = await this.getTextValue()
       longText = longText.trim()
       const words = longText.split(' ')
 
@@ -69,7 +75,7 @@ export class Race extends PureComponent {
     const raceStats = this.getRaceStats()
 
     try {
-      platormApiSvc.post(resource.race, {
+      await platormApiSvc.post(resource.raceHistory, {
         ...raceStats,
         user: user._id
       })
@@ -80,7 +86,7 @@ export class Race extends PureComponent {
       })
       this.setState({ historyRefresh: Date.now() })
     } catch (e) {
-      message.warning('Failed to save your race.')
+      message.warning('Failed to save race result.')
     }
   }
 
@@ -92,7 +98,7 @@ export class Race extends PureComponent {
       const { countDownTimer } = this.state
 
       if (countDownTimer) {
-        setTimeout(this.countDown, 0)
+        setTimeout(this.countDown, 1000)
       } else {
         this.startRace()
       }
@@ -186,9 +192,10 @@ export class Race extends PureComponent {
   }
 
   currentWord () {
-    const { wordToMatch, userInput, words, wordsCompleted } = this.state
-    let currentWord = wordToMatch
+    const { wordToMatch = '', userInput, words, wordsCompleted } = this.state
+    let currentWord = wordToMatch.trim()
     let fontColor = 'ant-typography-success'
+    const wordSpace = (wordsCompleted.length < (words.length - 1)) ? ' ' : ''
 
     if (userInput) {
       const _wordToMatch = wordToMatch.split('')
@@ -203,19 +210,15 @@ export class Race extends PureComponent {
         return matched
       })
 
-      currentWord = currentWord.trim().split('')
+      currentWord = currentWord.split('')
       const matchedPortion = currentWord.splice(0, matchCount)
       const unmatchedPortion = currentWord.splice(0, userInput.length - matchedPortion.length)
-      const wordSpace = (wordsCompleted.length < (words.length - 1)) ? ' ' : ''
 
       currentWord = (
         <>
-          <span className={classes.currentWord}>
-            <b>{matchedPortion}</b>
-            <span className={classes.unmatched}>{unmatchedPortion}</span>
-            {currentWord}
-          </span>
-          {wordSpace}
+          <b>{matchedPortion}</b>
+          <span className={classes.unmatched}>{unmatchedPortion}</span>
+          {currentWord}
         </>
       )
     }
@@ -224,7 +227,8 @@ export class Race extends PureComponent {
     return (
       <>
         <span className="ant-typography ant-typography-success">{wordsCompleted}</span>
-        {<span className={classnames('ant-typography', fontColor)}>{currentWord}</span>}
+        {<span className={classnames(classes.currentWord, 'ant-typography', fontColor)}>{currentWord}</span>}
+        {wordSpace}
         {remaining}
       </>
     )
@@ -252,7 +256,7 @@ export class Race extends PureComponent {
         <Alert
           className="text-center mb-3"
           type="success"
-          message="Awesome you completed the game!"
+          message="Awesome, you completed the game!"
         />
       ) : (
         <Alert
@@ -285,7 +289,8 @@ export class Race extends PureComponent {
     if (raceStatus !== IDLE) {
       time = (
         <Col span={12} className={classes.time}>
-          <ClockCircleOutlined /> {remainingTime}
+          <ClockCircleOutlined />{' '}
+          <Timer seconds={remainingTime} />
         </Col>
       )
       meter = (
@@ -302,6 +307,7 @@ export class Race extends PureComponent {
         <Row align="top">
           <Col xl={12} lg={24}>
             <div className={classnames(classes.raceBox)}>
+              {alert}
               <div className="text-center mb-4">
                 {raceStatus !== ONGOING && <Button
                   onClick={this.initRace}
@@ -309,9 +315,8 @@ export class Race extends PureComponent {
                   size="large"
                   type="primary"
                 >{buttonLabel}</Button>}
-                {!!countDownTimer && <div>{countDownTimer}</div>}
+                {!!countDownTimer && <div className={classes.countDownTimer}>{countDownTimer}</div>}
               </div>
-              {alert}
               <Row className={classes.ticker}>
                 {time}
                 {meter}
@@ -320,7 +325,8 @@ export class Race extends PureComponent {
             </div>
           </Col>
           <Col xl={12} lg={24}>
-            <RaceHistory refresh={historyRefresh} />
+            <UserProfile/>
+            <RaceHistory refresh={historyRefresh}/>
           </Col>
         </Row>
       </Layout>
