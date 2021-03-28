@@ -20,7 +20,6 @@ import UserProfile from '@components/Race/UserProfile/UserProfile'
 export class Race extends PureComponent {
   state = {
     ...this.defaultState,
-    raceHistory: []
   }
 
   get defaultState () {
@@ -40,6 +39,26 @@ export class Race extends PureComponent {
 
   componentWillUnmount () {
     clearTimeout(this.raceTimer)
+  }
+
+  async saveRaceResult () {
+    const { user } = this.props
+    const raceStats = this.getRaceStats()
+
+    try {
+      await platormApiSvc.post(resource.raceHistory, {
+        ...raceStats,
+        user: user._id
+      })
+
+      notification.success({
+        message: 'Race successfully Saved',
+        description: 'Your new record has been added to your race history.'
+      })
+      this.setState({ refreshKey: Date.now() })
+    } catch (e) {
+      message.warning('Failed to save race result.')
+    }
   }
 
   async getTextValue () {
@@ -73,26 +92,6 @@ export class Race extends PureComponent {
     }
 
     this.setState(stateUpdate)
-  }
-
-  async saveRaceResult () {
-    const { user } = this.props
-    const raceStats = this.getRaceStats()
-
-    try {
-      await platormApiSvc.post(resource.raceHistory, {
-        ...raceStats,
-        user: user._id
-      })
-
-      notification.success({
-        message: 'Race successfully Saved',
-        description: 'Your new record has been added to your race history.'
-      })
-      this.setState({ refreshKey: Date.now() })
-    } catch (e) {
-      message.warning('Failed to save race result.')
-    }
   }
 
   countDown = () => {
