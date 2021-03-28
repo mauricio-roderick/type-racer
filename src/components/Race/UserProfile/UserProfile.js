@@ -1,22 +1,66 @@
 import React, { PureComponent } from 'react'
-import { Avatar, Card } from 'antd'
-import { UserOutlined, SettingOutlined, EditOutlined, EllipsisOutlined } from '@ant-design/icons'
+import { Avatar, Card, message } from 'antd'
+import { UserOutlined, ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons'
 import moment from 'moment'
 
 import classes from './UserProfile.scss'
+import { LOADING, IDLE } from '@config/constant'
+import resource from '@config/resource'
 import { dateTimeFormat } from '@config/collection'
+import platormApiSvc from '@services/platform-api/'
 import { connect as connectToApp } from '@providers/app'
 
 class UserProfile extends PureComponent {
+  state = {}
+
+  componentDidMount () {
+    this.getStats()
+  }
+
+  async getStats () {
+    this.setState({ fetchStatStatus: LOADING })
+    let stateUpdate = {
+      fetchStatStatus: IDLE
+    }
+    try {
+      const { data } = await platormApiSvc.get(resource.raceHistory + '/24-hour-stats')
+      stateUpdate = {
+        ...stateUpdate,
+        ...data
+      }
+    } catch (e) {
+      message.error('Failed to user stats. Please try reloading the page.')
+    }
+
+    this.setState(stateUpdate)
+  }
+
   render () {
     const { user } = this.props
+    const { averageWpm, averageTime, coverageDate } = this.state
+    const wpm = (
+      <>
+        <div>
+          <DashboardOutlined key="wpm" /> Average wpm
+        </div>
+        {averageWpm} wpm
+      </>
+    )
+    const time = (
+      <>
+        <div>
+          <ClockCircleOutlined key="wpm" /> Average Time
+        </div>
+        {averageTime} second(s)
+      </>
+    )
+
     return (
       <Card
         className={classes.userProfile}
         actions={[
-          <SettingOutlined key="setting" />,
-          <EditOutlined key="edit" />,
-          <EllipsisOutlined key="ellipsis" />
+          wpm,
+          time
         ]}
       >
         <Card.Meta
@@ -25,7 +69,7 @@ class UserProfile extends PureComponent {
           description={(
             <>
               <div>Name: {user.firstName} {user.lastName}</div>
-              <div>Last login: {moment(user.lastSignOn).format(dateTimeFormat.client)}</div>
+              <div>Ave. Stats Coverage: {moment(coverageDate).format(dateTimeFormat.client)}</div>
             </>
           )}
         />
