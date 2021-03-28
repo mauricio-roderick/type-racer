@@ -6,7 +6,6 @@ import moment from 'moment'
 import classes from './UserProfile.scss'
 import { LOADING, IDLE } from '@config/constant'
 import resource from '@config/resource'
-import { dateTimeFormat } from '@config/collection'
 import platormApiSvc from '@services/platform-api/'
 import { connect as connectToApp } from '@providers/app'
 
@@ -23,7 +22,7 @@ class UserProfile extends PureComponent {
       fetchStatStatus: IDLE
     }
     try {
-      const { data } = await platormApiSvc.get(resource.raceHistory + '/24-hour-stats')
+      const { data } = await platormApiSvc.get(resource.raceHistory + '/recent-stats')
       stateUpdate = {
         ...stateUpdate,
         ...data
@@ -69,7 +68,7 @@ class UserProfile extends PureComponent {
           description={(
             <>
               <div>Name: {user.firstName} {user.lastName}</div>
-              <div>Ave. Stats Coverage: {moment(coverageDate).format(dateTimeFormat.client)}</div>
+              <div>Ave. Stats Coverage: {moment(coverageDate).startOf('hour').fromNow()}</div>
             </>
           )}
         />

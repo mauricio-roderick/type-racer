@@ -89,11 +89,12 @@ export class RaceHistory extends PureComponent {
 
     return (
       <Table
-        title={() => <Typography.Title level={4}>Race History</Typography.Title>}
+        size="small"
         columns={columns}
+        pagination={pagination}
         loading={fetchHistoryStatus === LOADING}
         dataSource={raceHistory.map((item, i) => ({ ...item, key: i }))}
-        pagination={pagination}
+        title={() => <Typography.Title level={4}>Race History</Typography.Title>}
       />
     )
   }
