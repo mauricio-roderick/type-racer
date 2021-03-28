@@ -1,5 +1,5 @@
 {
-  "name": "hh-web",
+  "name": "type-racer",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,12 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org:headhuntr_io/hh-web.git"
+    "url": "git+ssh://git@github.com:mauricio-roderick/type-racer.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/headhuntr_io/hh-web",
+  "homepage": "",
   "dependencies": {
     "@ant-design/icons": "^4.6.2",
     "@sentry/browser": "^6.2.1",
