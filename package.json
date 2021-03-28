@@ -1,5 +1,5 @@
 {
-  "homepage": "http://mauricio-roderick.github.io/type-racer",
+  "homepage": "http://mauricio-roderick.github.io/type-racer/",
   "name": "type-racer",
   "version": "1.0.0",
   "description": "",
@@ -8,6 +8,7 @@
     "start": "webpack-dev-server --config ./webpack/dev.js",
     "build": "webpack -p --config ./webpack/prod.js",
     "test": "jest --config ./test/jest.config.json --runInBand --verbose",
+    "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "lint": "eslint ./src"
   },
