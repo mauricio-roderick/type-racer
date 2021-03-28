@@ -1,15 +1,17 @@
 import React, { Component } from 'react'
 import Loadable from 'react-loadable'
-import { Spin } from 'antd'
+import { Loading3QuartersOutlined } from '@ant-design/icons'
+
+import classes from './ComponentLoader.scss'
 
 class LoadingComponent extends Component {
   render () {
     const { error } = this.props
     if (error) {
-      console.error(error)
+      throw error
     }
 
-    return <Spin size="small" />
+    return <Loading3QuartersOutlined className={classes.loadingIcon} spin />
   }
 }
 
