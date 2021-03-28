@@ -89,7 +89,7 @@ export class Race extends PureComponent {
         message: 'Race successfully Saved',
         description: 'Your new record has been added to your race history.'
       })
-      this.setState({ historyRefresh: Date.now() })
+      this.setState({ refreshKey: Date.now() })
     } catch (e) {
       message.warning('Failed to save race result.')
     }
@@ -365,7 +365,7 @@ export class Race extends PureComponent {
     const {
       countDownTimer,
       raceNotif,
-      historyRefresh,
+      refreshKey,
       gameInitStatus
     } = this.state
     const notif = raceNotif ? (
@@ -394,8 +394,8 @@ export class Race extends PureComponent {
             </div>
           </Col>
           <Col xl={12} lg={24}>
-            <UserProfile/>
-            <RaceHistory refresh={historyRefresh}/>
+            <UserProfile refresh={refreshKey}/>
+            <RaceHistory refresh={refreshKey}/>
           </Col>
         </Row>
       </Layout>

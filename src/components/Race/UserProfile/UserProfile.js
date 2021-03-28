@@ -16,6 +16,13 @@ class UserProfile extends PureComponent {
     this.getStats()
   }
 
+  componentDidUpdate (prevProps) {
+    const { refresh } = this.props
+    if (refresh !== prevProps.refresh) {
+      this.getStats()
+    }
+  }
+
   async getStats () {
     this.setState({ fetchStatStatus: LOADING })
     let stateUpdate = {
@@ -68,7 +75,7 @@ class UserProfile extends PureComponent {
           description={(
             <>
               <div>Name: {user.firstName} {user.lastName}</div>
-              <div>Ave. Stats Coverage: {moment(coverageDate).startOf('hour').fromNow()}</div>
+              {coverageDate && <div>Ave. Stats Coverage: {moment(coverageDate).startOf('hour').fromNow()}</div>}
             </>
           )}
         />
