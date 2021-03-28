@@ -32,8 +32,8 @@ _merge(config, {
   mode: 'production',
   devtool: 'source-map',
   output: {
-      path: path.resolve(workingDir, dirName),
-      publicPath: '/'
+    path: path.resolve(workingDir, dirName),
+    publicPath: '/'
   },
   module: {
     rules: [
