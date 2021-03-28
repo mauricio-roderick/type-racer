@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react'
+import PropTypes from 'prop-types'
 import { Row, Col, Input, Button, Alert, Progress, message, notification } from 'antd'
 import { ClockCircleOutlined, DashboardOutlined, Loading3QuartersOutlined } from '@ant-design/icons'
 import { withRouter } from 'react-router-dom'
@@ -12,7 +13,6 @@ import { LOADING, IDLE, raceStatus as raceStatusConf } from '@config/constant'
 import { raceTimeLimit, raceCountdown, wordsCount, countDownLabels } from '@config/collection'
 import platormApiSvc from '@services/platform-api/'
 import { connect as connectToApp } from '@providers/app'
-import Layout from '@containers/Layout/Layout'
 import RaceHistory from '@components/Race/History/History'
 import Timer from '@components/Race/Timer/Timer'
 import UserProfile from '@components/Race/UserProfile/UserProfile'
@@ -379,7 +379,7 @@ export class Race extends PureComponent {
     ) : null
 
     return (
-      <Layout>
+      <>
         <Row align="top">
           <Col xl={12} lg={24}>
             <div className={classnames(classes.raceBox)}>
@@ -398,7 +398,7 @@ export class Race extends PureComponent {
             <RaceHistory refresh={refreshKey}/>
           </Col>
         </Row>
-      </Layout>
+      </>
     )
   }
 }
@@ -406,6 +406,14 @@ export class Race extends PureComponent {
 Race.defaultProps = {
   raceTimeLimit: raceTimeLimit,
   raceCountdown: raceCountdown
+}
+
+Race.propTypes = {
+  raceTimeLimit: PropTypes.number,
+  raceCountdown: PropTypes.number,
+  user: PropTypes.shape({
+    _id: PropTypes.string
+  })
 }
 
 const appState = ({ user }) => {
