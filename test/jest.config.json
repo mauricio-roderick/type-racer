@@ -1,0 +1,26 @@
+{
+  "setupFilesAfterEnv": [
+    "./test/jest.setup.js"
+  ],
+  "rootDir": "../",
+  "moduleNameMapper": {
+    "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/test/mock.file.js",
+    "\\.(css|scss)$": "<rootDir>/test/mock.style.js",
+    "^@test(.*)$": "<rootDir>/test$1",
+    "^@components(.*)$": "<rootDir>/src/components$1",
+    "^@providers(.*)$": "<rootDir>/src/providers$1",
+    "^@helpers(.*)$": "<rootDir>/src/helpers$1",
+    "^@config(.*)$": "<rootDir>/src/config$1",
+    "^@services(.*)$": "<rootDir>/src/services$1",
+    "^@containers(.*)$": "<rootDir>/src/containers$1",
+    "^@assets(.*)$": "<rootDir>/src/assets$1",
+    "^@node_modules(.*)$": "<rootDir>/node_modules$1"
+  },
+  "testResultsProcessor": "jest-sonar-reporter",
+  "collectCoverage": true,
+  "coverageReporters": [
+    "json",
+    "html",
+    "lcov"
+  ]
+}
