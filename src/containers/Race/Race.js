@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react'
 import { Row, Col, message, notification } from 'antd'
 import { withRouter } from 'react-router-dom'
-import _flow from 'lodash.flow'
 import querySting from 'query-string'
 import axios from 'axios'
+import _flow from 'lodash.flow'
+import _get from 'lodash.get'
 
 import resource from '@config/resource'
 import platormApiSvc from '@services/platform-api/'
@@ -105,9 +106,8 @@ export class Race extends PureComponent {
     }
   }
 
-  async saveRaceResult () {
+  saveRaceResult = async (raceStats) => {
     const { user } = this.props
-    const raceStats = this.getRaceStats()
 
     try {
       await platormApiSvc.post(resource.raceHistory, {
@@ -119,7 +119,11 @@ export class Race extends PureComponent {
         message: 'Race successfully Saved',
         description: 'Your new record has been added to your race history.'
       })
-      this.setState({ refreshKey: Date.now() })
+
+      this.getUserStats()
+      if (_get(this.state, 'parsedQueryParams.page', 1) === 1) {
+        this.getRaceHistory()
+      }
     } catch (e) {
       message.warning('Failed to save race result.')
     }
@@ -129,25 +133,23 @@ export class Race extends PureComponent {
     const { raceHistory, totalRaceHistory, fetchRaceHistoryStatus, userStats, fetchUserStatsStatus, parsedQueryParams } = this.state
 
     return (
-      <>
-        <Row align="top">
-          <Col xl={12} lg={24}>
-            <TypeRace />
-          </Col>
-          <Col xl={12} lg={24}>
-            <UserProfile
-              stats={userStats}
-              fetchStatus={fetchUserStatsStatus}
-            />
-            <RaceHistory
-              records={raceHistory}
-              totalRecords={totalRaceHistory}
-              fetchStatus={fetchRaceHistoryStatus}
-              queryParams={parsedQueryParams}
-            />
-          </Col>
-        </Row>
-      </>
+      <Row align="top">
+        <Col xl={12} lg={24}>
+          <TypeRace onRaceComplete={this.saveRaceResult} />
+        </Col>
+        <Col xl={12} lg={24}>
+          <UserProfile
+            stats={userStats}
+            fetchStatus={fetchUserStatsStatus}
+          />
+          <RaceHistory
+            records={raceHistory}
+            totalRecords={totalRaceHistory}
+            fetchStatus={fetchRaceHistoryStatus}
+            queryParams={parsedQueryParams}
+          />
+        </Col>
+      </Row>
     )
   }
 }

@@ -137,7 +137,7 @@ class TypeRace extends PureComponent {
 
     if (!userInitiated) {
       if (_isFunction(onRaceComplete)) {
-        onRaceComplete()
+        onRaceComplete(this.getRaceStats())
       }
     }
   }
