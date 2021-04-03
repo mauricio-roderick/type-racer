@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 
 const Timer = ({ seconds }) => {
   const minutes = Math.floor(seconds / 60).toString()
@@ -8,4 +8,4 @@ const Timer = ({ seconds }) => {
   )
 }
 
-export default Timer
+export default memo(Timer)
