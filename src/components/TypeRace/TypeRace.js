@@ -250,7 +250,6 @@ class TypeRace extends PureComponent {
         {[ONGOING, END].includes(raceStatus) && (
           <>
             <Progress className="my-2" percent={Math.floor(percentage)} />
-            <div>{textToMatch}</div>
             <div className={classnames(classes.textProgress)}>
               {this.textProgress()}
             </div>
