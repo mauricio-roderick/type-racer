@@ -37,6 +37,7 @@ const History = (props) => {
   }]
 
   const pagination = {
+    showSizeChanger: false,
     hideOnSinglePage: true,
     total: totalRecords,
     position: ['bottomCenter'],
