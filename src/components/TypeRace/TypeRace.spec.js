@@ -3,7 +3,7 @@ import { shallow } from 'enzyme'
 import moxios from 'moxios'
 
 import platormApiSvc from '@services/platform-api/'
-import { Race } from './Race'
+import TypeRace from './TypeRace'
 import { checkProps } from '@test/utils'
 
 const defaultProps = {
@@ -16,13 +16,13 @@ const defaultProps = {
 
 const setUp = (props) => {
 	const setupProps = { ...defaultProps, ...props }
-  const wrapper = shallow(<Race {...setupProps} />)
+  const wrapper = shallow(<TypeRace {...setupProps} />)
   return wrapper
 }
 
 test('does not throw any warning with expected props', () => {
 	const expectedProps = { ...defaultProps }
-	checkProps(Race, expectedProps)
+	checkProps(TypeRace, expectedProps)
 })
 
 describe('On load', () => {
@@ -36,9 +36,9 @@ describe('On load', () => {
     const expectedState = {
       longText: '',
       userInput: '',
-      wordToMatch: '',
+      textToMatch: '',
       words: [],
-      matchedChars: [],
+      matchedText: '',
       wordsCompleted: [],
       countDownTimer: 0,
       raceNotif: null,

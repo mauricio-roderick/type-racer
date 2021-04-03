@@ -5,14 +5,17 @@ import { ClockCircleOutlined, DashboardOutlined, Loading3QuartersOutlined } from
 import classnames from 'classnames'
 import _get from 'lodash.get'
 import _isFunction from 'lodash.isfunction'
+import axios from 'axios'
 
 import classes from './TypeRace.scss'
 import resource from '@config/resource'
-import { stringDiff } from '@helpers/collection'
+import { stringDiff, handleApiError } from '@helpers/collection'
 import { LOADING, IDLE, raceStatus as raceStatusConf } from '@config/constant'
 import { raceTimeLimit, raceCountdown, wordsCount, countDownLabels } from '@config/collection'
 import platormApiSvc from '@services/platform-api/'
 import Timer from '@components/Race/Timer/Timer'
+
+const { CancelToken } = axios
 
 class TypeRace extends PureComponent {
   state = {
@@ -35,11 +38,17 @@ class TypeRace extends PureComponent {
   }
 
   componentWillUnmount () {
+    if (this.cancelGetRandomTextRequest) {
+      this.cancelGetRandomTextRequest()
+    }
     clearTimeout(this.raceTimer)
   }
 
-  async getTextValue () {
+  async getRandomText () {
     return await platormApiSvc.get(resource.randomText, {
+      cancelToken: new CancelToken(cancelFunc => {
+        this.cancelGetRandomTextRequest = cancelFunc
+      }),
       params: {
         words: wordsCount
       }
@@ -52,23 +61,24 @@ class TypeRace extends PureComponent {
       gameInitStatus: LOADING
     })
 
-    const stateUpdate = {
-      gameInitStatus: IDLE
-    }
     try {
-      const { data } = await this.getTextValue()
+      const { data } = await this.getRandomText()
       const longText = data.text
       const words = longText.split(' ')
 
-      stateUpdate.longText = longText
-      stateUpdate.words = words.map((word, i) => i !== (words.length - 1) ? word + ' ' : word)
-      stateUpdate.raceStatus = raceStatusConf.COUNTDOWN
+      this.setState({
+        gameInitStatus: IDLE,
+        longText: longText,
+        words: words.map((word, i) => i !== (words.length - 1) ? word + ' ' : word),
+        raceStatus: raceStatusConf.COUNTDOWN
+      })
       this.countDown()
     } catch (e) {
-      message.error('Failed to initialize game.')
+      handleApiError(e, () => {
+        message.error('Failed to initialize game.')
+        this.setState({ gameInitStatus: IDLE })
+      })
     }
-
-    this.setState(stateUpdate)
   }
 
   countDown = () => {
