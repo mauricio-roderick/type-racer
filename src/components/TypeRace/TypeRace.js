@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
-import { Row, Col, Input, Button, Alert, Progress, message } from 'antd'
-import { ClockCircleOutlined, DashboardOutlined, Loading3QuartersOutlined } from '@ant-design/icons'
+import { Row, Col, Input, Button, Alert, Progress, Typography, message } from 'antd'
+import { ClockCircleOutlined, DashboardOutlined, Loading3QuartersOutlined, FlagOutlined, TrophyOutlined, FieldTimeOutlined } from '@ant-design/icons'
 import classnames from 'classnames'
 import _get from 'lodash.get'
 import _isFunction from 'lodash.isfunction'
@@ -16,6 +16,7 @@ import platormApiSvc from '@services/platform-api/'
 import Timer from '@components/Race/Timer/Timer'
 
 const { CancelToken } = axios
+const { Title } = Typography
 
 class TypeRace extends PureComponent {
   state = {
@@ -128,13 +129,19 @@ class TypeRace extends PureComponent {
     if (!userInitiated) {
       if (words.length === wordsCompleted.length) {
         raceNotif = {
-          message: 'Awesome, you completed the race!',
+          message: <Title level={4} className="m-0">Awesome</Title>,
+          description: 'You completed the race!',
+          showIcon: true,
+          icon: <TrophyOutlined />,
           type: 'success'
         }
       } else {
         raceNotif = {
-          message: 'Sorry, you ran out of time.',
-          type: 'info'
+          message: <Title level={4} className="m-0">Time&apos;s Up</Title>,
+          description: 'Sorry, you ran out of time.',
+          showIcon: true,
+          icon: <FieldTimeOutlined />,
+          type: 'error'
         }
       }
     }
@@ -318,6 +325,7 @@ class TypeRace extends PureComponent {
         type="primary"
         size="large"
       >
+        <FlagOutlined />
         {(raceStatus !== END) ? 'Start Race' : 'Start a New Race'}
       </Button>
     ) : null
@@ -351,7 +359,7 @@ class TypeRace extends PureComponent {
     const notif = raceNotif ? (
       <Alert
         {...raceNotif}
-        className="text-center mb-3"
+        className="mb-3"
       />
     ) : null
     const initIndicator = raceStatus === raceStatusConf.INIT ? (
