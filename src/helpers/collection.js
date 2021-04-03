@@ -12,4 +12,16 @@ export const mathRound = (value, decimalPlaces = 2) => {
   return Math.round((value + Number.EPSILON) * decimalPlace) / decimalPlace
 }
 
+export const stringDiff = (input = '', stringToMatch = '') => {
+  let matchedText = '';
+
+  [...input].every((char, i) => {
+    const matched = char === stringToMatch.charAt(i)
+    if (matched) matchedText += char
+    return matched
+  })
+
+  return matchedText
+}
+
 export default {}
