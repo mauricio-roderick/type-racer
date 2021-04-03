@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from 'react'
+import React, { memo } from 'react'
 import { Avatar, Card, Skeleton } from 'antd'
 import { UserOutlined, ClockCircleOutlined, DashboardOutlined, CalendarOutlined } from '@ant-design/icons'
 import moment from 'moment'
@@ -13,9 +13,6 @@ const UserProfile = (props) => {
   const { user, fetchStatus, stats } = props
   const { averageWpm, averageTime, dateFrom, dateTo } = stats
 
-  useEffect(() => {
-    console.log('----')
-  }, [user])
   const wpm = (
     <>
       <div>
