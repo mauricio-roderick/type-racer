@@ -10,7 +10,7 @@ import axios from 'axios'
 import classes from './TypeRace.scss'
 import resource from '@config/resource'
 import { stringDiff, handleApiError } from '@helpers/collection'
-import { LOADING, IDLE, raceStatus as raceStatusConf } from '@config/constant'
+import { raceStatus as raceStatusConf } from '@config/constant'
 import { raceTimeLimit, raceCountdown, wordsCount, countDownLabels } from '@config/collection'
 import platormApiSvc from '@services/platform-api/'
 import Timer from '@components/Race/Timer/Timer'
@@ -32,8 +32,7 @@ class TypeRace extends PureComponent {
       matchedText: '',
       countDownTimer: 0,
       raceNotif: null,
-      raceStatus: raceStatusConf.IDLE,
-      gameInitStatus: IDLE
+      raceStatus: raceStatusConf.IDLE
     }
   }
 
@@ -58,7 +57,7 @@ class TypeRace extends PureComponent {
   initRace = async () => {
     this.setState({
       ...this.defaultState,
-      gameInitStatus: LOADING
+      raceStatus: raceStatusConf.INIT
     })
 
     try {
@@ -67,7 +66,6 @@ class TypeRace extends PureComponent {
       const words = longText.split(' ')
 
       this.setState({
-        gameInitStatus: IDLE,
         longText: longText,
         words: words.map((word, i) => i !== (words.length - 1) ? word + ' ' : word),
         raceStatus: raceStatusConf.COUNTDOWN
@@ -76,7 +74,7 @@ class TypeRace extends PureComponent {
     } catch (e) {
       handleApiError(e, () => {
         message.error('Failed to initialize game.')
-        this.setState({ gameInitStatus: IDLE })
+        this.setState({ raceStatus: raceStatusConf.IDLE })
       })
     }
   }
@@ -287,7 +285,7 @@ class TypeRace extends PureComponent {
     let time = null
     let meter = null
 
-    if (raceStatus !== IDLE) {
+    if (raceStatus !== raceStatusConf.IDLE) {
       time = (
         <Col span={12} className={classes.time}>
           <ClockCircleOutlined />{' '}
@@ -310,10 +308,10 @@ class TypeRace extends PureComponent {
   }
 
   renderRaceButtons () {
-    const { ONGOING, COUNTDOWN, END } = raceStatusConf
+    const { IDLE, ONGOING, END } = raceStatusConf
     const { raceStatus } = this.state
 
-    const startButton = ![ONGOING, COUNTDOWN].includes(raceStatus) ? (
+    const startButton = [IDLE, END].includes(raceStatus) ? (
       <Button
         onClick={this.initRace}
         className={classes.raceButton}
@@ -348,7 +346,7 @@ class TypeRace extends PureComponent {
     const {
       countDownTimer,
       raceNotif,
-      gameInitStatus
+      raceStatus
     } = this.state
     const notif = raceNotif ? (
       <Alert
@@ -356,7 +354,7 @@ class TypeRace extends PureComponent {
         className="text-center mb-3"
       />
     ) : null
-    const initIndicator = gameInitStatus === LOADING ? (
+    const initIndicator = raceStatus === raceStatusConf.INIT ? (
       <Loading3QuartersOutlined className={classes.initIcon} spin />
     ) : null
 
