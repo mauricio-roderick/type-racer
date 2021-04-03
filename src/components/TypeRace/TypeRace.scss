@@ -8,15 +8,23 @@
   font-size: 24px;
   line-height: 24px;
 }
-.longText {
+.textProgress {
   margin: 20px 0;
   user-select: none;
   font-size: 26px;
   line-height: 28px;
   text-align: justify;
-}
-.currentWord {
-  text-decoration: underline;
+
+  .currentWord {
+    text-decoration: underline;
+  }
+  .matched {
+    color: #52c41a;
+    text-decoration: underline;
+  }
+  .unmatched {
+    background-color: #f0a3a3;
+  }
 }
 .ticker {
   font-size: 20px;
