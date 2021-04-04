@@ -1,11 +1,11 @@
 import React, { memo } from 'react'
 import { Table, Typography } from 'antd'
 import { withRouter } from 'react-router-dom'
-import { dateTimeFormat } from '@config/collection'
 import moment from 'moment'
 import _flow from 'lodash.flow'
 
 import { LOADING } from '@config/constant'
+import { dateTimeFormat } from '@config/collection'
 
 const History = (props) => {
   const { fetchStatus, records, totalRecords, queryParams: { page } } = props

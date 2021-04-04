@@ -29,7 +29,7 @@ class TypeRace extends PureComponent {
       userInput: '',
       textToMatch: '',
       words: [],
-      wordsCompleted: [],
+      wordsCompleted: 0,
       matchedText: '',
       countDownTimer: 0,
       raceNotif: null,
@@ -67,8 +67,8 @@ class TypeRace extends PureComponent {
       const words = longText.split(' ')
 
       this.setState({
+        words,
         longText: longText,
-        words: words.map((word, i) => i !== (words.length - 1) ? word + ' ' : word),
         raceStatus: raceStatusConf.COUNTDOWN
       })
       this.countDown()
@@ -81,8 +81,8 @@ class TypeRace extends PureComponent {
   }
 
   countDown = () => {
-    this.setState(state => {
-      const countDownTimer = !state.countDownTimer ? this.props.raceCountdown : state.countDownTimer - 1
+    this.setState((state, props) => {
+      const countDownTimer = !state.countDownTimer ? props.raceCountdown : state.countDownTimer - 1
       return { countDownTimer }
     }, () => {
       const { countDownTimer } = this.state
@@ -96,10 +96,10 @@ class TypeRace extends PureComponent {
   }
 
   startRace () {
-    this.setState(state => ({
-      textToMatch: state.words[0],
+    this.setState(({ words, wordsCompleted }, { raceTimeLimit }) => ({
+      textToMatch: words[0] + this.prependSpace(words.length, wordsCompleted),
       raceStatus: raceStatusConf.ONGOING,
-      remainingTime: this.props.raceTimeLimit + 1
+      remainingTime: raceTimeLimit + 1
     }), () => {
       const textBox = document.querySelector('#text-box')
       textBox.focus()
@@ -127,7 +127,7 @@ class TypeRace extends PureComponent {
     let raceNotif
 
     if (!userInitiated) {
-      if (words.length === wordsCompleted.length) {
+      if (words.length === wordsCompleted) {
         raceNotif = {
           message: <Title level={4} className="m-0">Awesome</Title>,
           description: 'You completed the race!',
@@ -159,9 +159,9 @@ class TypeRace extends PureComponent {
   }
 
   getRaceStats () {
-    const { wordsCompleted, matchedText, remainingTime = 0 } = this.state
+    const { words, wordsCompleted, matchedText, remainingTime = 0 } = this.state
     const { raceTimeLimit } = this.props
-    const text = wordsCompleted.join('') + matchedText
+    const text = [...words].splice(0, wordsCompleted).join(' ') + matchedText
     const time = raceTimeLimit - remainingTime
     const wpm = text.length ? (text.length / 5) * 60 / time : 0
 
@@ -170,6 +170,10 @@ class TypeRace extends PureComponent {
       time,
       textLength: text.length
     }
+  }
+
+  prependSpace (totalWords, wordsCompleted) {
+    return wordsCompleted !== (totalWords - 1) ? ' ' : ''
   }
 
   userInputOnChange = (e) => {
@@ -182,12 +186,12 @@ class TypeRace extends PureComponent {
       }
 
       if (value === textToMatch) {
-        const wordsCompleted = [...this.state.wordsCompleted, textToMatch]
+        const wordsCompleted = state.wordsCompleted + 1
         stateUpdate = {
+          wordsCompleted,
           userInput: '',
           matchedText: '',
-          wordsCompleted: wordsCompleted,
-          textToMatch: words[wordsCompleted.length]
+          textToMatch: words[wordsCompleted] + this.prependSpace(words.length, wordsCompleted)
         }
       } else {
         const matchedText = stringDiff(value, textToMatch)
@@ -200,21 +204,21 @@ class TypeRace extends PureComponent {
       return stateUpdate
     }, () => {
       const { wordsCompleted, words } = this.state
-      if (wordsCompleted.length === words.length) {
+      if (wordsCompleted === words.length) {
         this.endRace()
       }
     })
   }
 
   textProgress () {
-    const { textToMatch = '', userInput, words, wordsCompleted } = this.state
-    let currentWord = textToMatch.trim()
-    const wordSpace = (wordsCompleted.length < (words.length - 1)) ? ' ' : ''
+    const { userInput, words, wordsCompleted } = this.state
+    let currentWord = words[wordsCompleted] || ''
     const overflow = userInput.length - currentWord.length
-    let remaining = wordSpace + [...words].splice(wordsCompleted.length + 1).join(' ')
+    const prependSpace = this.prependSpace(words.length, wordsCompleted)
+    let remaining = prependSpace + [...words].splice(wordsCompleted + 1).join(' ')
 
     if (userInput) {
-      const matchedText = stringDiff(userInput, textToMatch)
+      const matchedText = stringDiff(userInput, currentWord)
 
       const unmatchedText = currentWord.substr(matchedText.length, userInput.length - matchedText.length)
       const remainingText = currentWord.substr(userInput.length)
@@ -240,7 +244,8 @@ class TypeRace extends PureComponent {
 
     return (
       <>
-        {!!wordsCompleted.length && <span className="ant-typography ant-typography-success">{wordsCompleted}</span>}
+        <span className="ant-typography ant-typography-success">{[...words].splice(0, wordsCompleted).join(' ')}</span>
+        {wordsCompleted ? ' ' : ''}
         {<span className={classnames(classes.currentWord, 'ant-typography')}>{currentWord}</span>}
         {remaining}
       </>
@@ -256,20 +261,17 @@ class TypeRace extends PureComponent {
       matchedText,
       longText
     } = this.state
+
+    if (![ONGOING, END].includes(raceStatus)) return null
+
     const { textLength } = this.getRaceStats()
     const hasTypo = matchedText.length < userInput.length
     const percentage = (textLength / longText.length) * 100
 
     return (
       <>
-        {[ONGOING, END].includes(raceStatus) && (
-          <>
-            <Progress className="my-2" percent={Math.floor(percentage)} />
-            <div className={classnames(classes.textProgress)}>
-              {this.textProgress()}
-            </div>
-          </>
-        )}
+        <Progress className="my-2" percent={Math.floor(percentage)} />
+        <div className={classnames(classes.textProgress)}>{this.textProgress()}</div>
         {raceStatus === ONGOING && <Input
           value={userInput}
           onChange={this.userInputOnChange}

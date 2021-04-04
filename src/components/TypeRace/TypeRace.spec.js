@@ -39,11 +39,10 @@ describe('On load', () => {
       textToMatch: '',
       words: [],
       matchedText: '',
-      wordsCompleted: [],
+      wordsCompleted: 0,
       countDownTimer: 0,
       raceNotif: null,
-      raceStatus: 'IDLE',
-      gameInitStatus: 'IDLE'
+      raceStatus: 'IDLE'
     }
     expect(expectedState).toStrictEqual(state)
   })
@@ -71,7 +70,7 @@ describe('Race init', () => {
       .then(function () {
         const { longText, words } = wrapper.state()
 				expect(longText).toBe(randomText)
-				expect(words.join('')).toBe(randomText)
+				expect(words.join(' ')).toBe(randomText)
         done()
       })
     })
@@ -86,11 +85,10 @@ describe('Race init', () => {
         status: 400
       })
       .then(function () {
-        const { words, longText, gameInitStatus, raceStatus } = wrapper.state()
+        const { words, longText, raceStatus } = wrapper.state()
         expect(longText).toBe('')
         expect(raceStatus).toBe('IDLE')
         expect(words).toStrictEqual([])
-        expect(gameInitStatus).toBe('IDLE')
         done()
       })
     })
