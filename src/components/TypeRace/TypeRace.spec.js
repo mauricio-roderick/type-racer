@@ -3,7 +3,7 @@ import { shallow } from 'enzyme'
 import moxios from 'moxios'
 
 import platormApiSvc from '@services/platform-api/'
-import { Race } from './Race'
+import TypeRace from './TypeRace'
 import { checkProps } from '@test/utils'
 
 const defaultProps = {
@@ -16,13 +16,13 @@ const defaultProps = {
 
 const setUp = (props) => {
 	const setupProps = { ...defaultProps, ...props }
-  const wrapper = shallow(<Race {...setupProps} />)
+  const wrapper = shallow(<TypeRace {...setupProps} />)
   return wrapper
 }
 
 test('does not throw any warning with expected props', () => {
 	const expectedProps = { ...defaultProps }
-	checkProps(Race, expectedProps)
+	checkProps(TypeRace, expectedProps)
 })
 
 describe('On load', () => {
@@ -36,14 +36,13 @@ describe('On load', () => {
     const expectedState = {
       longText: '',
       userInput: '',
-      wordToMatch: '',
+      textToMatch: '',
       words: [],
-      matchedChars: [],
-      wordsCompleted: [],
+      matchedText: '',
+      wordsCompleted: 0,
       countDownTimer: 0,
       raceNotif: null,
-      raceStatus: 'IDLE',
-      gameInitStatus: 'IDLE'
+      raceStatus: 'IDLE'
     }
     expect(expectedState).toStrictEqual(state)
   })
@@ -71,7 +70,7 @@ describe('Race init', () => {
       .then(function () {
         const { longText, words } = wrapper.state()
 				expect(longText).toBe(randomText)
-				expect(words.join('')).toBe(randomText)
+				expect(words.join(' ')).toBe(randomText)
         done()
       })
     })
@@ -86,11 +85,10 @@ describe('Race init', () => {
         status: 400
       })
       .then(function () {
-        const { words, longText, gameInitStatus, raceStatus } = wrapper.state()
+        const { words, longText, raceStatus } = wrapper.state()
         expect(longText).toBe('')
         expect(raceStatus).toBe('IDLE')
         expect(words).toStrictEqual([])
-        expect(gameInitStatus).toBe('IDLE')
         done()
       })
     })

@@ -1,0 +1,69 @@
+.raceBox {
+  max-width: 100%;
+  width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.raceButton {
+  font-size: 24px;
+  line-height: 24px;
+}
+.textProgress {
+  margin: 20px 0;
+  user-select: none;
+  font-size: 26px;
+  line-height: 28px;
+  text-align: justify;
+
+  .currentWord {
+    text-decoration: underline;
+  }
+  .matched {
+    color: #52c41a;
+    text-decoration: underline;
+  }
+  .unmatched {
+    background-color: #f0a3a3;
+  }
+}
+.ticker {
+  font-size: 20px;
+  font-weight: bold;
+
+  [class*="anticon"]{
+    font-size: 24px;
+    vertical-align: -5px;
+  }
+  .time {
+    color: #e1813c;
+  }
+  .meter {
+    color: #42577e;
+    text-align: right;
+  }
+}
+.countDownTimer {
+  font-size: 40px;
+}
+.textBox {
+  font-size: 20px;
+  padding: 3px;
+
+  &:focus {
+    border-width: 2px !important;
+  }
+  &.hasTypo {
+    border-color: #cb324c;
+    background: #c49b9b;
+  }
+}
+.raceHistoryLoader {
+  display: block;
+  font-size: 30px;
+}
+.initIcon {
+  font-size: 40px;
+  display: block;
+  color: #42577e;
+  margin-bottom: 10px;
+}

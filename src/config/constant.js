@@ -3,7 +3,8 @@ export const IDLE = 'IDLE'
 
 export const raceStatus = {
   IDLE: 'IDLE',
-  ONGOING: 'ONGOING',
+  INIT: 'INIT',
   COUNTDOWN: 'COUNTDOWN',
+  ONGOING: 'ONGOING',
   END: 'END'
 }

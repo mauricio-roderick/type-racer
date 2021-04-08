@@ -1,90 +1,75 @@
-import React, { PureComponent } from 'react'
-import { Avatar, Card, message } from 'antd'
-import { UserOutlined, ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons'
+import React, { memo } from 'react'
+import { Avatar, Card, Skeleton } from 'antd'
+import { UserOutlined, ClockCircleOutlined, DashboardOutlined, CalendarOutlined } from '@ant-design/icons'
 import moment from 'moment'
+import _flow from 'lodash.flow'
 
 import classes from './UserProfile.scss'
-import { LOADING, IDLE } from '@config/constant'
-import resource from '@config/resource'
-import platormApiSvc from '@services/platform-api/'
+import { LOADING } from '@config/constant'
+import { dateFormat } from '@config/collection'
 import { connect as connectToApp } from '@providers/app'
 
-class UserProfile extends PureComponent {
-  state = {}
+const UserProfile = (props) => {
+  const { user, fetchStatus, stats } = props
+  const { averageWpm, averageTime, dateFrom, dateTo } = stats
 
-  componentDidMount () {
-    this.getStats()
-  }
+  const wpm = (
+    <>
+      <div>
+        <DashboardOutlined /> Average wpm
+      </div>
+      {fetchStatus === LOADING ? (
+        <Skeleton.Button active size="small" shape="round" />
+      ) : `${averageWpm} wpm`}
+    </>
+  )
+  const time = (
+    <>
+      <div>
+        <ClockCircleOutlined /> Average Time
+      </div>
+      {fetchStatus === LOADING ? (
+        <Skeleton.Button active size="small" shape="round" />
+      ) : `${averageTime} second(s)`}
+    </>
+  )
+  const coverage = (
+    <>
+      <div>
+        <CalendarOutlined /> Stats Coverage
+      </div>
+      {fetchStatus === LOADING ? (
+        <Skeleton.Button active size="small" shape="round" />
+      ) : (
+        dateFrom && <div>{moment(dateFrom).format(dateFormat.client)} - {moment(dateTo).format(dateFormat.client)}</div>
+      )}
+    </>
+  )
 
-  componentDidUpdate (prevProps) {
-    const { refresh } = this.props
-    if (refresh !== prevProps.refresh) {
-      this.getStats()
-    }
-  }
-
-  async getStats () {
-    this.setState({ fetchStatStatus: LOADING })
-    let stateUpdate = {
-      fetchStatStatus: IDLE
-    }
-    try {
-      const { data } = await platormApiSvc.get(resource.raceHistory + '/recent-stats')
-      stateUpdate = {
-        ...stateUpdate,
-        ...data
-      }
-    } catch (e) {
-      message.error('Failed to user stats. Please try reloading the page.')
-    }
-
-    this.setState(stateUpdate)
-  }
-
-  render () {
-    const { user } = this.props
-    const { averageWpm, averageTime, coverageDate } = this.state
-    const wpm = (
-      <>
-        <div>
-          <DashboardOutlined key="wpm" /> Average wpm
-        </div>
-        {averageWpm} wpm
-      </>
-    )
-    const time = (
-      <>
-        <div>
-          <ClockCircleOutlined key="wpm" /> Average Time
-        </div>
-        {averageTime} second(s)
-      </>
-    )
-
-    return (
-      <Card
-        className={classes.userProfile}
-        actions={[
-          wpm,
-          time
-        ]}
-      >
-        <Card.Meta
-          avatar={<Avatar size={64} icon={<UserOutlined />} />}
-          title={user.username}
-          description={(
-            <>
-              <div>Name: {user.firstName} {user.lastName}</div>
-              {coverageDate && <div>Ave. Stats Coverage: {moment(coverageDate).startOf('hour').fromNow()}</div>}
-            </>
-          )}
-        />
-      </Card>
-    )
-  }
+  return (
+    <Card
+      actions={[
+        coverage,
+        wpm,
+        time
+      ]}
+      className={classes.userProfile}
+    >
+      <Card.Meta
+        avatar={<Avatar size={64} icon={<UserOutlined />} />}
+        title={user.username}
+        description={(
+          <div>Name: {user.firstName} {user.lastName}</div>
+        )}
+      />
+    </Card>
+  )
 }
 
 const appState = ({ user }) => {
   return { user }
 }
-export default connectToApp(appState)(UserProfile)
+export default _flow([
+  memo,
+  connectToApp(appState)
+])(UserProfile)
